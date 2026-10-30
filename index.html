@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>B’s</title>
+<!--
+README (short version; the full setup guide is inside the app under "Setup")
+- Accent colour: change --accent / --accent-soft in :root below.
+- Fonts: change the Google Fonts <link> and the --serif / --sans / --hand variables.
+- Sheet columns: Date | Amount | Category | Description | Payment Method | Month | Year
+- Auth: this is a MOCK. See the "AUTH" comment block in the script for how to harden it.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Karla:wght@400;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--paper:#fff4e4;--card:#fffcf5;--ink:#2d2a3a;--mute:#6b6678;--line:#f0d9c4;--accent:#ff8aa1;--accent-deep:#d63f6a;--accent-soft:#ffe0e8;--note:#ffe98a;--note-ink:#3a3210;--bad:#d6453a;
+--serif:"Fraunces",Georgia,serif;--sans:"Karla","Trebuchet MS",sans-serif;--hand:"Caveat","Segoe Print",cursive;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#241f2e;--card:#2e2839;--ink:#f6ecff;--mute:#b3a9c4;--line:#4b4260;--accent:#ff9db1;--accent-deep:#ff9db1;--accent-soft:#4a2f3c;--note:#7a6a22;--note-ink:#fff2b8;--bad:#ff8f80;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#241f2e;--card:#2e2839;--ink:#f6ecff;--mute:#b3a9c4;--line:#4b4260;--accent:#ff9db1;--accent-deep:#ff9db1;--accent-soft:#4a2f3c;--note:#7a6a22;--note-ink:#fff2b8;--bad:#ff8f80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--sans);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+h1,h2,h3{font-family:var(--serif);font-weight:700;line-height:1.15;margin:0}
+.hand{font-family:var(--hand);font-size:1.35rem;color:var(--accent-deep);line-height:1.1}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:18px 18px 70px}
+[hidden]{display:none!important}
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.loginCard{background:var(--card);padding:34px 30px 30px;max-width:380px;width:100%;transform:rotate(-1.2deg);box-shadow:3px 5px 0 var(--line);border:1px solid var(--line);position:relative}
+.loginCard:before{content:"";position:absolute;top:-14px;left:42%;width:90px;height:28px;background:var(--note);opacity:.85;transform:rotate(3deg)}
+.loginCard h1{font-size:2.6rem}
+.loginCard p{color:var(--mute);margin:.6rem 0 1.2rem}
+.ring{position:absolute;right:-26px;bottom:-22px;width:92px;height:92px;border:7px solid rgba(120,80,40,.16);border-radius:50%;border-right-color:transparent;transform:rotate(30deg);pointer-events:none}
+label{display:block;font-weight:700;margin:14px 0 6px}
+input,select{width:100%;min-height:52px;padding:10px 14px;background:var(--paper);border:2px solid var(--line);border-radius:4px 7px 5px 6px}
+input:focus{border-color:var(--accent);outline:none}
+.btn{min-height:54px;padding:10px 22px;border:2px solid var(--ink);background:var(--accent);color:#2d2a3a;font-weight:700;border-radius:6px 4px 7px 4px;cursor:pointer;box-shadow:2px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translate(2px,3px);box-shadow:0 0 0 var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.err{color:var(--bad);font-weight:700;min-height:1.4em;margin:8px 0 0}
+/* header */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0 14px}
+header h1{font-size:2.1rem;transform:rotate(-.8deg)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{min-height:46px;padding:6px 16px;background:var(--card);border:2px solid var(--line);border-radius:4px 4px 0 0;cursor:pointer;font-weight:700}
+nav button[aria-current="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.sheet{background:var(--card);border:1px solid var(--line);padding:22px;box-shadow:3px 4px 0 var(--line);animation:turn .35s ease-out}
+@keyframes turn{from{opacity:0;transform:translateY(8px) rotate(.4deg)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:48px;padding:6px 16px;border:2px solid var(--line);background:var(--paper);border-radius:22px 18px 24px 16px;cursor:pointer;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#2d2a3a;transform:rotate(-1.5deg)}
+.chip.add{border-style:dashed;color:var(--mute)}
+.addrow{display:flex;gap:8px;margin-top:8px}
+.addrow .btn{min-height:52px;box-shadow:none}
+.amt{font-family:var(--serif);font-size:2.2rem;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stamp{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) rotate(-3deg);background:var(--note);color:var(--note-ink);padding:12px 22px;font-family:var(--hand);font-size:1.6rem;box-shadow:2px 4px 0 rgba(0,0,0,.25);animation:pop .35s;z-index:9}
+@keyframes pop{from{opacity:0;transform:translateX(-50%) translateY(20px) rotate(4deg) scale(.9)}}
+/* look */
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.seg button{min-height:44px;padding:4px 16px;border:2px solid var(--line);background:var(--paper);border-radius:20px;cursor:pointer;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.pick>div{flex:1 1 150px}.pick label{margin-top:0}
+.total{margin:18px 0 4px;font-family:var(--serif);font-size:clamp(2.4rem,9vw,3.8rem);font-weight:700;letter-spacing:-.02em}
+.charts{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-top:14px}
+.chartbox{background:var(--paper);border:1px dashed var(--line);padding:12px;position:relative;min-height:260px}
+.chartbox h3{font-size:1.1rem;margin-bottom:6px}.chartbox canvas{max-height:260px}
+.wide{grid-column:1/-1}
+.note{background:var(--note);color:var(--note-ink);padding:20px 22px 18px;transform:rotate(1deg);box-shadow:3px 5px 0 rgba(0,0,0,.18);margin-top:20px;max-width:560px}
+.note h3{font-family:var(--hand);font-size:1.8rem;font-weight:700;margin-bottom:6px}
+.note ul{margin:0;padding-left:1.1em}.note li{margin:7px 0}
+.hint{color:var(--mute);font-size:.95rem}
+ul.list{list-style:none;margin:10px 0 0;padding:0}
+ul.list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+ul.list .d{flex:1;min-width:0}.d small{display:block;color:var(--mute)}
+.x{min-width:44px;min-height:44px;background:none;border:0;color:var(--bad);cursor:pointer;font-size:1.3rem}
+pre{background:var(--paper);border:1px solid var(--line);padding:12px;overflow-x:auto;font-size:.8rem;line-height:1.4}
+details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
+@media(max-width:680px){.grid2,.charts{grid-template-columns:1fr}body{font-size:16px}.sheet{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="login" hidden>
+  <div class="loginCard">
+    <h1>B’s</h1>
+    <p id="loginMsg">Private. Just you. Nobody else is allowed to judge your chai habit.</p>
+    <form id="loginForm" autocomplete="on">
+      <label for="pw" id="pwLabel">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required minlength="6">
+      <p class="err" id="loginErr" role="alert"></p>
+      <button class="btn" type="submit" id="loginBtn" style="width:100%;margin-top:8px">Let me in</button>
+    </form>
+    <div class="ring"></div>
+  </div>
+</section>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <div><div class="hand">money, but make it mine</div><h1>B’s</h1></div>
+    <nav aria-label="Sections">
+      <button data-v="add" aria-current="true">Jot it down</button>
+      <button data-v="look">Where’d it go?</button>
+      <button data-v="setup">Setup</button>
+      <button id="out">Lock up</button>
+    </nav>
+  </header>
+
+  <!-- ADD -->
+  <main>
+  <section class="sheet" id="v-add">
+    <h2>What did you spend?</h2>
+    <p class="hint" id="addHint">Be honest. The ledger has seen worse.</p>
+    <!-- Plain-HTML equivalent of this form is in Setup. The JS below posts the same 5 fields. -->
+    <form id="expForm">
+      <label for="amount">Amount (₹)</label>
+      <input id="amount" class="amt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0" required>
+      <label>Category</label>
+      <div class="chips" id="catChips"></div>
+      <label for="desc">What was it? <span class="hint">(future you will ask)</span></label>
+      <input id="desc" type="text" maxlength="80" placeholder="e.g. third chai, 'just a quick look' at Fabindia">
+      <label>Paid with</label>
+      <div class="chips" id="payChips"></div>
+      <label for="date">Date</label>
+      <input id="date" type="date" required>
+      <p class="err" id="addErr" role="alert"></p>
+      <button class="btn" type="submit" style="width:100%;margin-top:10px;font-size:1.15rem">Stick it in the ledger</button>
+    </form>
+  </section>
+
+  <!-- LOOK -->
+  <section class="sheet" id="v-look" hidden>
+    <h2>Where is my money actually going?</h2>
+    <div class="seg" id="mode" role="group" aria-label="Time range">
+      <button data-m="day" aria-pressed="false">Day</button>
+      <button data-m="month" aria-pressed="true">Month</button>
+      <button data-m="range" aria-pressed="false">Custom</button>
+      <button data-m="year" aria-pressed="false">Year</button>
+    </div>
+    <div class="pick">
+      <div data-for="day"><label for="pDay">Day</label><input type="date" id="pDay"></div>
+      <div data-for="month"><label for="pMon">Month</label><input type="month" id="pMon"></div>
+      <div data-for="range"><label for="pFrom">From</label><input type="date" id="pFrom"></div>
+      <div data-for="range"><label for="pTo">To</label><input type="date" id="pTo"></div>
+      <div data-for="year"><label for="pYr">Year</label><input type="number" id="pYr" min="2000" max="2100"></div>
+    </div>
+    <div class="total" id="total">₹0</div>
+    <div class="hint" id="totalSub"></div>
+    <div id="empty" hidden><p>Nothing here yet. Suspiciously virtuous, or just unlogged?</p><button class="btn ghost" id="seed">Fill with a sample mess</button></div>
+    <div class="charts" id="charts">
+      <div class="chartbox"><h3 id="barT">Over time</h3><canvas id="cBar" role="img" aria-label="Spending over time"></canvas></div>
+      <div class="chartbox"><h3>By category</h3><canvas id="cCat" role="img" aria-label="Spending by category"></canvas></div>
+      <div class="chartbox wide"><h3>By payment method</h3><canvas id="cPay" role="img" aria-label="Spending by payment method" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="note"><h3>Margin notes</h3><ul id="insights"></ul></div>
+    <h3 style="margin-top:26px">The receipts</h3>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <!-- SETUP -->
+  <section class="sheet" id="v-setup" hidden>
+    <h2>Setup</h2>
+    <p>Everything is saved on this device first. To also send each expense to a Google Sheet, follow the steps and paste your link here.</p>
+    <p class="hint" id="cloud"></p>
+    <label for="url">Apps Script web app URL</label>
+    <input id="url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+    <button class="btn" id="saveUrl" style="margin-top:10px">Save link</button>
+    <p class="hint">Heads up: browsers inside a shared preview often block calls to other sites. Syncing works once this file lives on your own hosting or you open it locally.</p>
+    <details open><summary>Google Sheet steps</summary>
+      <ol>
+        <li>Make a new Google Sheet. Name it anything.</li>
+        <li>Extensions → Apps Script. Delete what’s there and paste the script below.</li>
+        <li>Deploy → New deployment → Web app. Execute as: Me. Who has access: Anyone. Deploy and copy the URL.</li>
+        <li>Paste the URL above. Add one expense. A row appears with the header: Date | Amount | Category | Description | Payment Method | Month | Year.</li>
+      </ol>
+<pre id="gs">function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var s = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
+  if (s.getLastRow() == 0) {
+    s.appendRow(['Date','Amount','Category','Description','Payment Method','Month','Year']);
+    s.getRange(1,1,1,7).setFontWeight('bold'); s.setFrozenRows(1);
+  }
+  var p = e.parameter, d = new Date(p.date);
+  s.appendRow([p.date, Number(p.amount), p.category, p.description, p.payment,
+    d.toLocaleString('en-US',{month:'long'}), d.getFullYear()]);
+  return ContentService.createTextOutput('ok');
+}</pre></details>
+    <details><summary>Plain HTML form (no JavaScript needed)</summary>
+<pre>&lt;form method="POST" action="YOUR_WEB_APP_URL"&gt;
+  &lt;input name="date" type="date" required&gt;
+  &lt;input name="amount" type="number" step="0.01" required&gt;
+  &lt;input name="category"&gt;
+  &lt;input name="description"&gt;
+  &lt;input name="payment"&gt;
+  &lt;button&gt;Save&lt;/button&gt;
+&lt;/form&gt;</pre></details>
+    <details><summary>Change colours, fonts, or add real login</summary>
+      <p><b>Accent:</b> edit <code>--accent</code> and <code>--accent-soft</code> at the top of the CSS. <b>Fonts:</b> swap the Google Fonts link and <code>--serif</code>, <code>--sans</code>, <code>--hand</code>. <b>Real auth:</b> see the AUTH comment in the script; short version, move the check to a server (Firebase Auth, Supabase, or your own backend with hashed passwords and HttpOnly cookies), and send an auth token with each Sheets request.</p>
+    </details>
+    <details><summary>Change password</summary>
+      <form id="pwForm">
+        <label for="pwOld">Current password</label>
+        <input id="pwOld" type="password" autocomplete="current-password" required>
+        <label for="pwNew">New password (6+ characters)</label>
+        <input id="pwNew" type="password" autocomplete="new-password" minlength="6" required>
+        <label for="pwNew2">New password again</label>
+        <input id="pwNew2" type="password" autocomplete="new-password" minlength="6" required>
+        <p class="err" id="pwMsg" role="alert"></p>
+        <button class="btn" type="submit">Change password</button>
+      </form></details>
+    <button class="btn ghost" id="theme">Flip light/dark</button>
+  </section>
+  </main>
+</div>
+<div class="stamp" id="stamp" hidden></div>
+
+<script>
+/* ===== AUTH (MOCK, read me) =====
+   What this does: first visit asks you to choose a password; we store a SHA-256 hash in your account’s private db (localStorage is the fallback)
+   and a session expiry in sessionStorage. That keeps casual snoops out; it does NOT stop someone with devtools.
+   To harden: (1) verify the password on a server, never in the browser; (2) use a salted slow hash (argon2/bcrypt);
+   (3) issue a session via an HttpOnly, Secure, SameSite cookie; (4) rate-limit attempts; (5) protect the Sheets
+   endpoint with a secret token the server checks. */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+async function hash(p){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("sticky-ledger:"+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return"x"+btoa(p)}}
+const sessOK=()=>{try{return+sessionStorage.getItem("sl_sess")>Date.now()}catch(e){return false}};
+let S={cats:["Food","Transport","Rent/Home","Shopping","Health","Entertainment","Bills","Personal Care","Misc"],pays:["Cash","GPay","Bank Transfer","Other"],exp:[],url:""};
+try{const r=lsGet("sl_data");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+/* ===== CLOUD (private per-account db: data/users/<id>/auth, settings, m-YYYY-MM) ===== */
+let DB=null,authHash=null,ready=false,flushT=null,flushing=false;const written={};
+async function initDB(){try{if(typeof claude==='undefined')return;const db=await claude.use('db'),u=await claude.use('user');if(!db||!u)return;const id=await u.id();if(id)DB=db.collection('data/users/'+id)}catch(e){DB=null}}
+async function loadDB(){
+  try{
+    const snap=await DB.get(),ex=[];let dbAuth=null,has=false;
+    snap.docs.forEach(d=>{const v=d.data()||{};
+      if(d.id==='auth')dbAuth=v.h;
+      else if(d.id==='settings'){has=true;if(v.cats)S.cats=v.cats;if(v.pays)S.pays=v.pays;S.url=v.url||''}
+      else if(d.id.startsWith('m-')&&v.items){has=true;ex.push(...v.items)}});
+    if(dbAuth)authHash=dbAuth;
+    else{authHash=lsGet('sl_auth');if(authHash)DB.doc('auth').set({h:authHash}).catch(()=>{})}
+    if(has){S.exp=ex;lsSet('sl_data',JSON.stringify(S))}else if(S.exp.length)save();
+  }catch(e){DB=null}
+}
+async function setAuth(h){authHash=h;lsSet('sl_auth',h);if(DB){try{await DB.doc('auth').set({h})}catch(e){}}}
+function save(){lsSet('sl_data',JSON.stringify(S));if(!DB)return;clearTimeout(flushT);flushT=setTimeout(flush,400)}
+async function flush(){
+  if(flushing){flushT=setTimeout(flush,400);return}
+  flushing=true;
+  try{
+    const by={};S.exp.forEach(e=>{const k='m-'+e.date.slice(0,7);(by[k]=by[k]||[]).push(e)});
+    const st=JSON.stringify({cats:S.cats,pays:S.pays,url:S.url});
+    if(written.settings!==st){await DB.doc('settings').set({cats:S.cats,pays:S.pays,url:S.url});written.settings=st}
+    for(const k of Object.keys(by)){const j=JSON.stringify(by[k]);if(written[k]!==j){await DB.doc(k).set({items:by[k]});written[k]=j}}
+    for(const k of Object.keys(written)){if(k[0]==='m'&&!by[k]){await DB.doc(k).delete();delete written[k]}}
+  }catch(e){stamp('Saved here; cloud didn’t answer.')}
+  flushing=false;
+}
+
+async function gate(){
+  if(!ready){await initDB();authHash=lsGet("sl_auth");if(DB)await loadDB();ready=true;
+    $("#cloud").textContent=DB?"Saved to your Claude account. Open this link on any device where you’re signed in and it’s all here.":"Cloud saving isn’t available in this view, so everything is kept on this device only."}
+  const first=!authHash;
+  if(sessOK()){$("#login").hidden=true;$("#app").hidden=false;boot();return}
+  $("#app").hidden=true;$("#login").hidden=false;
+  $("#pwLabel").textContent=first?"Choose a password (6+ characters)":"Password";
+  $("#loginBtn").textContent=first?"Start my ledger":"Let me in";
+  if(first)$("#loginMsg").textContent="First time? Pick a password. Not your birthday. We both know.";
+}
+$("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();const h=await hash($("#pw").value),stored=authHash;
+  if(!stored){await setAuth(h)}else if(stored!==h){$("#loginErr").textContent="Nope. Try again, slowly.";return}
+  try{sessionStorage.setItem("sl_sess",Date.now()+8*36e5)}catch(e){}
+  $("#pw").value="";$("#loginErr").textContent="";gate();
+});
+$("#out").onclick=()=>{try{sessionStorage.removeItem("sl_sess")}catch(e){}gate()};
+
+/* ===== UI ===== */
+let booted=false,selCat,selPay,mode="month",charts={};
+function boot(){
+  if(booted)return;booted=true;
+  const t=new Date();$("#date").value=ymd(t);$("#pDay").value=ymd(t);$("#pMon").value=ymd(t).slice(0,7);
+  $("#pYr").value=t.getFullYear();$("#pFrom").value=ymd(new Date(t.getFullYear(),t.getMonth(),1));$("#pTo").value=ymd(t);
+  $("#url").value=S.url||"";selCat=S.cats[0];selPay=S.pays[0];chips();setMode(mode);
+}
+function show(v){["add","look","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
+  $$("nav button[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
+  if(v==="look")render();window.scrollTo({top:0,behavior:"smooth"})}
+$$("nav button[data-v]").forEach(b=>b.onclick=()=>show(b.dataset.v));
+
+function chipSet(box,items,get,set,label){
+  const el=$(box);el.textContent="";
+  items.forEach(n=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=n;
+    b.setAttribute("aria-pressed",get()===n);b.onclick=()=>{set(n);chips()};el.append(b)});
+  const a=document.createElement("button");a.type="button";a.className="chip add";a.textContent="+ add "+label;
+  a.onclick=()=>{if(el.nextElementSibling&&el.nextElementSibling.classList.contains("addrow"))return;
+    const r=document.createElement("div");r.className="addrow";
+    r.innerHTML='<input type="text" maxlength="24" aria-label="New '+label+' name"><button type="button" class="btn">Add</button>';
+    const inp=r.querySelector("input"),go=()=>{const v=inp.value.trim();if(!v)return;
+      if(!items.some(x=>x.toLowerCase()===v.toLowerCase()))items.push(v);set(v);save();chips()};
+    r.querySelector("button").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+    el.after(r);inp.focus()};
+  el.append(a);
+}
+function chips(){
+  chipSet("#catChips",S.cats,()=>selCat,v=>selCat=v,"category");
+  chipSet("#payChips",S.pays,()=>selPay,v=>selPay=v,"method");
+  $$(".addrow").forEach((r,i)=>{if(i>0||!r.isConnected)return});
+}
+const hints=["Be honest. The ledger has seen worse.","Receipts in your bag count. Dig them out.","Small spends are still spends. Sneaky little things.","Log it now. Memory is a terrible accountant."];
+$("#expForm").addEventListener("submit",e=>{
+  e.preventDefault();const amt=parseFloat($("#amount").value);
+  if(!(amt>0)){$("#addErr").textContent="An amount helps. Even a guess.";return}
+  $("#addErr").textContent="";
+  const x={id:Date.now().toString(36),date:$("#date").value,amt,cat:selCat,desc:$("#desc").value.trim(),pay:selPay};
+  S.exp.push(x);save();syncSheet(x);
+  $("#amount").value="";$("#desc").value="";$$(".addrow").forEach(r=>r.remove());
+  $("#addHint").textContent=hints[Math.floor(Math.random()*hints.length)];
+  stamp(["Noted. Judgement-free.","Stuck it in.","Logged. Future you says thanks."][Math.floor(Math.random()*3)]);
+  $("#amount").focus();
+});
+function stamp(t){const s=$("#stamp");s.textContent=t;s.hidden=false;s.style.animation="none";s.offsetWidth;s.style.animation="";clearTimeout(stamp.t);stamp.t=setTimeout(()=>s.hidden=true,1900)}
+function syncSheet(x){
+  if(!S.url)return;
+  const m=new Date(x.date+"T00:00:00");
+  const p=new URLSearchParams({date:x.date,amount:x.amt,category:x.cat,description:x.desc,payment:x.pay});
+  try{fetch(S.url,{method:"POST",mode:"no-cors",body:p}).catch(()=>stamp("Saved here; Sheet didn’t answer."))}catch(e){}
+}
+$("#saveUrl").onclick=()=>{S.url=$("#url").value.trim();save();stamp(S.url?"Link saved.":"Link cleared.")};
+$("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark";if(Object.keys(charts).length)render()};
+
+/* ===== LOOK ===== */
+function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
+  $$(".pick>div").forEach(d=>d.hidden=d.dataset.for!==m);render()}
+$$("#mode button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$$(".pick input").forEach(i=>i.onchange=render);
+const pd=s=>new Date(s+"T00:00:00");
+function range(){
+  if(mode==="day"){const v=$("#pDay").value;return[v,v]}
+  if(mode==="month"){const m=$("#pMon").value||ymd(new Date()).slice(0,7),[y,mo]=m.split("-").map(Number);return[m+"-01",ymd(new Date(y,mo,0))]}
+  if(mode==="year"){const y=$("#pYr").value||new Date().getFullYear();return[y+"-01-01",y+"-12-31"]}
+  return[$("#pFrom").value,$("#pTo").value]
+}
+const PAL=["#ff8aa1","#6fd0ef","#ffc65c","#9ab8ff","#c3a0ff","#ffa77a","#7fd6a8","#ff9ee0","#8fe0d0"];
+const sum=(l,k)=>{const o={};l.forEach(e=>o[e[k]]=(o[e[k]]||0)+e.amt);return Object.entries(o).sort((a,b)=>b[1]-a[1])};
+function draw(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),cfg)}
+function render(){
+  if($("#v-look").hidden)return;
+  const[a,b]=range(),list=S.exp.filter(e=>e.date>=a&&e.date<=b).sort((x,y)=>y.date.localeCompare(x.date));
+  const tot=list.reduce((s,e)=>s+e.amt,0);
+  $("#total").textContent=inr(tot);
+  $("#totalSub").textContent=list.length?list.length+(list.length>1?" entries":" entry")+", "+inr(tot/Math.max(1,(pd(b)-pd(a))/864e5+1))+" a day on average":"";
+  $("#empty").hidden=S.exp.length>0;$("#charts").hidden=!list.length;
+  const ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim(),mute=getComputedStyle(document.documentElement).getPropertyValue("--mute").trim();
+  Chart.defaults.font.family='Karla, sans-serif';Chart.defaults.color=mute;
+  // time buckets
+  let keys=[],monthly=false;
+  if(mode==="year"||(mode==="range"&&(pd(b)-pd(a))/864e5>62))monthly=true;
+  if(mode==="day"){for(let i=6;i>=0;i--){const d=pd(a);d.setDate(d.getDate()-i);keys.push(ymd(d))}}
+  else if(monthly){const d=pd(a.slice(0,8)+"01");while(ymd(d)<=b){keys.push(ymd(d).slice(0,7));d.setMonth(d.getMonth()+1)}}
+  else{const d=pd(a);while(ymd(d)<=b&&keys.length<400){keys.push(ymd(d));d.setDate(d.getDate()+1)}}
+  const tm={};S.exp.forEach(e=>{const k=monthly?e.date.slice(0,7):e.date;tm[k]=(tm[k]||0)+e.amt});
+  $("#barT").textContent=mode==="day"?"The week leading up to it":monthly?"Month by month":"Day by day";
+  if(list.length){
+  draw("#cBar",{type:"bar",data:{labels:keys.map(k=>monthly?pd(k+"-01").toLocaleString("en-IN",{month:"short"}):k.slice(8)),datasets:[{data:keys.map(k=>tm[k]||0),backgroundColor:PAL[0],borderRadius:3}]},
+    options:{responsive:true,animation:{duration:800,easing:"easeOutQuart"},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw)}}},scales:{y:{ticks:{callback:v=>"₹"+v},grid:{color:"rgba(120,100,70,.15)"}},x:{grid:{display:false}}}}});
+  const bc=sum(list,"cat"),bp=sum(list,"pay");
+  draw("#cCat",{type:"doughnut",data:{labels:bc.map(x=>x[0]),datasets:[{data:bc.map(x=>x[1]),backgroundColor:PAL,borderColor:getComputedStyle(document.documentElement).getPropertyValue("--card").trim(),borderWidth:3}]},
+    options:{cutout:"58%",animation:{animateRotate:true,duration:900},plugins:{legend:{position:"bottom",labels:{boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+": "+inr(c.raw)}}}}});
+  draw("#cPay",{type:"bar",data:{labels:bp.map(x=>x[0]),datasets:[{data:bp.map(x=>x[1]),backgroundColor:PAL.slice(3),borderRadius:3}]},
+    options:{indexAxis:"y",animation:{duration:800},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw)}}},scales:{x:{ticks:{callback:v=>"₹"+v},grid:{color:"rgba(120,100,70,.15)"}},y:{grid:{display:false}}}}});
+  }
+  insights(list,tot);
+  const ul=$("#list");ul.textContent="";
+  list.slice(0,12).forEach(e=>{const li=document.createElement("li");
+    li.innerHTML='<div class="d"><b></b><small></small></div><b class="p"></b><button class="x" aria-label="Delete this entry">×</button>';
+    li.querySelector(".d b").textContent=e.desc||e.cat;li.querySelector("small").textContent=e.date+", "+e.cat+", "+e.pay;
+    li.querySelector(".p").textContent=inr(e.amt);li.querySelector(".x").onclick=()=>{S.exp=S.exp.filter(z=>z.id!==e.id);save();render()};ul.append(li)});
+  if(list.length>12){const li=document.createElement("li");li.className="hint";li.textContent="…and "+(list.length-12)+" more. Narrow the dates to see them.";ul.append(li)}
+}
+function insights(list,tot){
+  const ul=$("#insights"),out=[];
+  if(!list.length){out.push("Nothing logged for this stretch. Either a miracle or a memory lapse.");}
+  else{
+    const bc=sum(list,"cat"),bp=sum(list,"pay"),top=bc[0],share=Math.round(top[1]/tot*100);
+    out.push("Biggest chunk: <b>"+esc(top[0])+"</b> at "+share+"% ("+inr(top[1])+"). "+(share>45?"That’s nearly half. Worth a hard look, not a guilt trip.":"Spread out nicely. No single villain."));
+    const food=(bc.find(x=>x[0]==="Food")||[0,0])[1],cof=list.filter(e=>/coffee|chai|tea|cafe|café|starbucks/i.test(e.desc)).reduce((s,e)=>s+e.amt,0);
+    if(cof>0)out.push("Chai, coffee and cafe stops: <b>"+inr(cof)+"</b>. A flask at home pays for itself fast.");
+    const sh=(bc.find(x=>x[0]==="Shopping")||[0,0])[1];if(sh>tot*.25)out.push("Shopping is "+Math.round(sh/tot*100)+"% of this. Try the 48-hour rule: if you still want it Thursday, it’s a want, not a whim.");
+    const big=[...list].sort((x,y)=>y.amt-x.amt)[0];out.push("Priciest single moment: <b>"+inr(big.amt)+"</b> on "+esc(big.desc||big.cat)+". Own it.");
+    if(bp[0])out.push(esc(bp[0][0])+" did most of the paying ("+Math.round(bp[0][1]/tot*100)+"%). "+(bp[0][0]==="Cash"?"Cash vanishes without a trace. Note it down when it leaves.":"Easy to tap, easy to forget. Glance at the list below."));
+    const days=new Set(list.map(e=>e.date)).size;out.push("You logged on "+days+" different day"+(days>1?"s":"")+". Consistency beats perfect.");
+    const w=["Pick one category to trim by 10% this month. Just one. You’re not entering a monastery.","Rent and bills are fixed. The squishy stuff, food, shopping, ‘misc’, is where freedom is made.","Moving even ₹500 to savings on payday, before it can be spent, quietly changes everything."];
+    out.push(w[Math.floor(Math.random()*w.length)]);
+  }
+  ul.innerHTML=out.map(x=>"<li>"+x+"</li>").join("");
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+$("#seed").onclick=()=>{
+  const cs=[["Food","chai",30,80],["Food","groceries",300,1200],["Transport","auto",60,250],["Shopping","kurta, obviously",400,2500],["Bills","electricity",800,1800],["Health","pharmacy",150,700],["Entertainment","movie",250,600],["Personal Care","salon",300,1200],["Food","coffee with Meera",150,400]],ps=["Cash","GPay","GPay","Bank Transfer"],t=new Date();
+  for(let i=0;i<70;i++){const c=cs[Math.floor(Math.random()*cs.length)],d=new Date(t);d.setDate(t.getDate()-Math.floor(Math.random()*70));
+    S.exp.push({id:"s"+i+Date.now(),date:ymd(d),amt:Math.round(c[2]+Math.random()*(c[3]-c[2])),cat:c[0],desc:c[1],pay:ps[Math.floor(Math.random()*ps.length)]})}
+  save();render();stamp("Sample mess added. Delete freely.")};
+$("#pwForm").addEventListener("submit",async e=>{
+  e.preventDefault();const m=$("#pwMsg"),cur=await hash($("#pwOld").value),nw=$("#pwNew").value;
+  if(cur!==authHash){m.textContent="Current password doesn’t match.";return}
+  if(nw.length<6){m.textContent="The new one needs 6+ characters.";return}
+  if(nw!==$("#pwNew2").value){m.textContent="The two new ones don’t match.";return}
+  await setAuth(await hash(nw));
+  $("#pwOld").value="";$("#pwNew").value="";$("#pwNew2").value="";m.textContent="";
+  stamp("Password changed. Don’t lose this one.");
+});
+gate();
+</script>
+</body>
+</html>

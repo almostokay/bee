@@ -15,11 +15,11 @@ README (short version; the full setup guide is inside the app under "Setup")
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Karla:wght@400;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--paper:#fff4e4;--card:#fffcf5;--ink:#2d2a3a;--mute:#6b6678;--line:#f0d9c4;--accent:#ff8aa1;--accent-deep:#d63f6a;--accent-soft:#ffe0e8;--note:#ffe98a;--note-ink:#3a3210;--bad:#d6453a;
+:root{--paper:#fbf3dc;--card:#fffdf6;--ink:#1d1a26;--mute:#625c70;--line:#e6d7a6;--accent:#ffc933;--accent-deep:#8a5a00;--accent-soft:#fff0b3;--note:#c6eee3;--note-ink:#12332d;--bad:#c8402f;
 --serif:"Fraunces",Georgia,serif;--sans:"Karla","Trebuchet MS",sans-serif;--hand:"Caveat","Segoe Print",cursive;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#241f2e;--card:#2e2839;--ink:#f6ecff;--mute:#b3a9c4;--line:#4b4260;--accent:#ff9db1;--accent-deep:#ff9db1;--accent-soft:#4a2f3c;--note:#7a6a22;--note-ink:#fff2b8;--bad:#ff8f80;color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#241f2e;--card:#2e2839;--ink:#f6ecff;--mute:#b3a9c4;--line:#4b4260;--accent:#ff9db1;--accent-deep:#ff9db1;--accent-soft:#4a2f3c;--note:#7a6a22;--note-ink:#fff2b8;--bad:#ff8f80;color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#17151f;--card:#211e2c;--ink:#f7f1de;--mute:#b0a9bf;--line:#3b364a;--accent:#ffd23f;--accent-deep:#ffd23f;--accent-soft:#3d3516;--note:#2c5b53;--note-ink:#e2fff6;--bad:#ff8f80;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#17151f;--card:#211e2c;--ink:#f7f1de;--mute:#b0a9bf;--line:#3b364a;--accent:#ffd23f;--accent-deep:#ffd23f;--accent-soft:#3d3516;--note:#2c5b53;--note-ink:#e2fff6;--bad:#ff8f80;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--sans);
@@ -33,6 +33,17 @@ button,input,select{font:inherit;color:inherit}
 .mini{min-height:44px;padding:4px 14px;border:2px solid var(--line);background:var(--paper);border-radius:14px;cursor:pointer;font-weight:700}
 .mini:active{background:var(--accent-soft)}
 .acts{display:flex;gap:6px;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0 8px}
+.cards>div{background:var(--paper);border:1px dashed var(--line);padding:12px 14px}
+.cards b{font-family:var(--serif);font-size:1.45rem;display:block;line-height:1.2}
+.brow{padding:14px 0;border-bottom:1px dashed var(--line)}
+.bh{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+.bar{height:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .8s ease-out}
+.bar.over i{background:#e8556d}
+.cwrap{position:relative;height:280px}
+.sheet{position:relative}
+.sheet:before{content:"";position:absolute;top:0;right:26px;width:22px;height:50px;background:var(--ink);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);pointer-events:none}
 @media(max-width:680px){#weekList li{flex-wrap:wrap}#weekList .acts{width:100%;justify-content:flex-end}}
 /* login */
 #login{min-height:100vh;display:grid;place-items:center;padding:20px}
@@ -95,7 +106,7 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 <section id="login" hidden>
   <div class="loginCard">
     <h1>B’s</h1>
-    <p id="loginMsg">Private. Just you. Nobody else is allowed to judge your chai habit.</p>
+    <p id="loginMsg">Private. Just you. Nobody else gets to judge the bookshop receipts.</p>
     <form id="loginForm" autocomplete="on">
       <label for="pw" id="pwLabel">Password</label>
       <input id="pw" type="password" autocomplete="current-password" required minlength="6">
@@ -108,10 +119,11 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 
 <div class="wrap" id="app" hidden>
   <header>
-    <div><div class="hand">money, but make it mine</div><h1>B’s</h1></div>
+    <div><div class="hand">a room of one’s own (and the rent for it)</div><h1>B’s</h1></div>
     <nav aria-label="Sections">
       <button data-v="add" aria-current="true">Jot it down</button>
       <button data-v="look">Where’d it go?</button>
+      <button data-v="budget">Budget</button>
       <button data-v="setup">Setup</button>
       <button id="out">Lock up</button>
     </nav>
@@ -120,10 +132,12 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
   <!-- ADD -->
   <main>
   <section class="sheet" id="v-add">
+    <div class='cards' id='home'></div>
     <h2>What did you spend?</h2>
     <p class="hint" id="addHint">Be honest. The ledger has seen worse.</p>
     <!-- Plain-HTML equivalent of this form is in Setup. The JS below posts the same 5 fields. -->
     <form id="expForm">
+      <div id='usual' hidden><label>Your usuals <span class='hint'>(tap to fill, then adjust)</span></label><div class='chips' id='usualChips'></div></div>
       <label for="amount">Amount (₹)</label>
       <input id="amount" class="amt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0" required>
       <label>Category</label>
@@ -171,6 +185,38 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
     <div class="note"><h3>Margin notes</h3><ul id="insights"></ul></div>
     <h3 style="margin-top:26px">The receipts</h3>
     <ul class="list" id="list"></ul>
+  </section>
+
+  <!-- BUDGET -->
+  <section class='sheet' id='v-budget' hidden>
+    <h2>The money plan</h2>
+    <p class='hint'>Say what you start the month with, give each category a limit, and see how the plan holds up against reality. At month end, add what you actually have left.</p>
+    <div class='pick'>
+      <div><label for='bMon'>Month</label><input type='month' id='bMon'></div>
+      <div><label for='bStart'>Starting amount (₹)</label><input type='number' id='bStart' inputmode='decimal' min='0' placeholder='What you have on day 1'></div>
+      <div><label for='bEnd'>Ending amount (₹)</label><input type='number' id='bEnd' inputmode='decimal' min='0' placeholder='Fill in at month end'></div>
+    </div>
+    <button class='btn' id='saveMon' type='button' style='margin-top:12px'>Save this month</button>
+    <div class='cards' id='bCards'></div>
+    <p id='bMsg'></p>
+    <div class='charts' id='bCharts'>
+      <div class='chartbox wide'><h3>Budget vs what you actually spent</h3><div class='cwrap' style='height:340px'><canvas id='cBud' role='img' aria-label='Budget versus spending by category'></canvas></div></div>
+      <div class='chartbox'><h3>Money left, day by day</h3><div class='cwrap'><canvas id='cBurn' role='img' aria-label='Money left over the month'></canvas></div></div>
+      <div class='chartbox'><h3>Where the starting amount went</h3><div class='cwrap'><canvas id='cSplit' role='img' aria-label='Spending and savings share'></canvas></div></div>
+    </div>
+    <h3 style='margin-top:28px'>Budget per category</h3>
+    <p class='hint'>A monthly limit for each one. Leave it blank for no limit.</p>
+    <div id='bList'></div>
+    <h3 style='margin-top:30px'>Independence fund</h3>
+    <p class='hint'>The money that keeps your options open. Name it, set a target, and update what you’ve put aside.</p>
+    <div class='pick'>
+      <div><label for='gName'>What is it for?</label><input id='gName' type='text' maxlength='40' placeholder='Own flat, sabbatical, never-ask-anyone fund'></div>
+      <div><label for='gTarget'>Target (₹)</label><input id='gTarget' type='number' inputmode='decimal' min='0'></div>
+      <div><label for='gSaved'>Saved so far (₹)</label><input id='gSaved' type='number' inputmode='decimal' min='0'></div>
+    </div>
+    <button class='btn' id='saveGoal' type='button' style='margin-top:12px'>Save fund</button>
+    <div class='bar' style='height:16px;margin-top:14px'><i id='gBar'></i></div>
+    <p class='hint' id='gMsg'></p>
   </section>
 
   <!-- SETUP -->
@@ -244,7 +290,7 @@ const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 async function hash(p){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("sticky-ledger:"+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return"x"+btoa(p)}}
 const sessOK=()=>{try{return+sessionStorage.getItem("sl_sess")>Date.now()}catch(e){return false}};
-let S={cats:["Food","Transport","Rent/Home","Shopping","Health","Entertainment","Bills","Personal Care","Misc"],pays:["Cash","GPay","Bank Transfer","Other"],exp:[],url:""};
+let S={cats:["Food","Transport","Rent/Home","Shopping","Health","Entertainment","Bills","Personal Care","Misc"],pays:["Cash","GPay","Bank Transfer","Other"],exp:[],url:"",bud:{},mon:{},goal:null};
 try{const r=lsGet("sl_data");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 /* ===== CLOUD (private per-account db: data/users/<id>/auth, settings, m-YYYY-MM) ===== */
 let DB=null,authHash=null,ready=false,flushT=null,flushing=false;const written={};
@@ -254,7 +300,7 @@ async function loadDB(){
     const snap=await DB.get(),ex=[];let dbAuth=null,has=false;
     snap.docs.forEach(d=>{const v=d.data()||{};
       if(d.id==='auth')dbAuth=v.h;
-      else if(d.id==='settings'){has=true;if(v.cats)S.cats=v.cats;if(v.pays)S.pays=v.pays;S.url=v.url||''}
+      else if(d.id==='settings'){has=true;if(v.cats)S.cats=v.cats;if(v.pays)S.pays=v.pays;S.url=v.url||'';S.bud=v.bud||{};S.mon=v.mon||{};S.goal=v.goal||null}
       else if(d.id.startsWith('m-')&&v.items){has=true;ex.push(...v.items)}});
     if(dbAuth)authHash=dbAuth;
     else{authHash=lsGet('sl_auth');if(authHash)DB.doc('auth').set({h:authHash}).catch(()=>{})}
@@ -268,8 +314,8 @@ async function flush(){
   flushing=true;
   try{
     const by={};S.exp.forEach(e=>{const k='m-'+e.date.slice(0,7);(by[k]=by[k]||[]).push(e)});
-    const st=JSON.stringify({cats:S.cats,pays:S.pays,url:S.url});
-    if(written.settings!==st){await DB.doc('settings').set({cats:S.cats,pays:S.pays,url:S.url});written.settings=st}
+    const st=JSON.stringify({cats:S.cats,pays:S.pays,url:S.url,bud:S.bud,mon:S.mon,goal:S.goal||null});
+    if(written.settings!==st){await DB.doc('settings').set({cats:S.cats,pays:S.pays,url:S.url,bud:S.bud,mon:S.mon,goal:S.goal||null});written.settings=st}
     for(const k of Object.keys(by)){const j=JSON.stringify(by[k]);if(written[k]!==j){await DB.doc(k).set({items:by[k]});written[k]=j}}
     for(const k of Object.keys(written)){if(k[0]==='m'&&!by[k]){await DB.doc(k).delete();delete written[k]}}
   }catch(e){stamp('Saved here; cloud didn’t answer.')}
@@ -298,13 +344,13 @@ $("#out").onclick=()=>{try{sessionStorage.removeItem("sl_sess")}catch(e){}gate()
 let booted=false,selCat,selPay,mode="month",charts={};
 function boot(){
   if(booted)return;booted=true;
-  const t=new Date();$("#date").value=ymd(t);$("#pDay").value=ymd(t);$("#pMon").value=ymd(t).slice(0,7);
+  const t=new Date();$("#date").value=ymd(t);$("#pDay").value=ymd(t);$("#pMon").value=ymd(t).slice(0,7);$("#bMon").value=ymd(t).slice(0,7);
   $("#pYr").value=t.getFullYear();$("#pFrom").value=ymd(new Date(t.getFullYear(),t.getMonth(),1));$("#pTo").value=ymd(t);
-  $("#url").value=S.url||"";selCat=S.cats[0];selPay=S.pays[0];chips();renderWeek();setMode(mode);
+  $("#url").value=S.url||"";if(!S.cats.some(c=>/book/i.test(c)))S.cats.splice(Math.min(6,S.cats.length),0,"Books");selCat=S.cats[0];selPay=S.pays[0];chips();renderWeek();setMode(mode);
 }
-function show(v){["add","look","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
+function show(v){["add","look","budget","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
   $$("nav button[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
-  if(v==="look")render();if(v==="add")renderWeek();window.scrollTo({top:0,behavior:"smooth"})}
+  if(v==="look")render();if(v==="add")renderWeek();if(v==="budget")renderBudget(true);window.scrollTo({top:0,behavior:"smooth"})}
 $$("nav button[data-v]").forEach(b=>b.onclick=()=>show(b.dataset.v));
 
 function chipSet(box,items,get,set,label){
@@ -326,7 +372,7 @@ function chips(){
   chipSet("#payChips",S.pays,()=>selPay,v=>selPay=v,"method");
   $$(".addrow").forEach((r,i)=>{if(i>0||!r.isConnected)return});
 }
-const hints=["Be honest. The ledger has seen worse.","Receipts in your bag count. Dig them out.","Small spends are still spends. Sneaky little things.","Log it now. Memory is a terrible accountant."];
+const hints=["Be honest. The ledger has seen worse.","Bookshop receipts count. Yes, all of them.","Small spends are still spends. Sneaky little things.","Log it now. Memory is a terrible accountant.","Every rupee you track is a rupee you answer to no one for."];
 $("#expForm").addEventListener("submit",e=>{
   e.preventDefault();const amt=parseFloat($("#amount").value);
   if(!(amt>0)){$("#addErr").textContent="An amount helps. Even a guess.";return}
@@ -363,7 +409,7 @@ function loadEntry(e,edit){
   $("#addHint").textContent=edit?"Editing an old entry. Fix it, then save.":"Copied. Change the date or details, then stick it in.";
   window.scrollTo({top:0,behavior:"smooth"});$("#amount").focus();
 }
-function renderWeek(){
+function renderWeek(){renderHome();
   const t=new Date(),f=new Date(t);f.setDate(t.getDate()-6);const a=ymd(f);
   const l=S.exp.filter(e=>e.date>=a).sort((x,y)=>y.date.localeCompare(x.date)||y.id.localeCompare(x.id));
   const tot=l.reduce((s,e)=>s+e.amt,0);
@@ -381,6 +427,89 @@ function renderWeek(){
       setTimeout(()=>{if(del.isConnected){del.textContent="×";del.style.fontSize="";delete del.dataset.s}},3000)};
     ul.append(li)});
 }
+/* ===== BUDGET ===== */
+const bMonth=()=>$('#bMon').value||ymd(new Date()).slice(0,7);
+const numOrNull=v=>{const n=parseFloat(v);return isNaN(n)?null:n};
+$('#bMon').onchange=()=>renderBudget(true);
+$('#saveMon').onclick=()=>{const m=bMonth(),s=numOrNull($('#bStart').value),e=numOrNull($('#bEnd').value);
+  if(s==null&&e==null)delete S.mon[m];else S.mon[m]={start:s,end:e};
+  save();renderBudget(false);stamp('Month saved.')};
+function renderBudget(fill){
+  const m=bMonth(),[y,mo]=m.split('-').map(Number),dim=new Date(y,mo,0).getDate(),mr=S.mon[m]||{};
+  const list=S.exp.filter(e=>e.date.slice(0,7)===m),spent=list.reduce((s,e)=>s+e.amt,0);
+  const hasS=mr.start!=null,hasE=mr.end!=null,start=mr.start||0;
+  if(fill){renderGoal(true);$('#bStart').value=hasS?mr.start:'';$('#bEnd').value=hasE?mr.end:''}
+  const byCat=Object.fromEntries(sum(list,'cat')),totBud=Object.values(S.bud).reduce((s,v)=>s+(+v||0),0);
+  const left=hasS?start-spent:null,kept=hasE?mr.end:left;
+  const card=(l,v,sub)=>'<div><small class="hint">'+l+'</small><b>'+v+'</b>'+(sub?'<small class="hint">'+sub+'</small>':'')+'</div>';
+  let h=card('Starting',hasS?inr(start):'not set')+card('Spent',inr(spent),list.length+(list.length===1?' entry':' entries'))+card(hasE?'Ended with':'Left on paper',hasE?inr(mr.end):(hasS?inr(left):'—'));
+  if(hasS&&kept!=null)h+=card(hasE?'Kept':'Kept so far',inr(Math.max(kept,0)),start>0?Math.round(Math.max(kept,0)/start*100)+'% of the start':'');
+  if(hasS&&hasE){const gap=left-mr.end;if(Math.abs(gap)>=1)h+=card('Unlogged',inr(Math.abs(gap)),gap>0?'gone, never written down':'more than the ledger predicts')}
+  $('#bCards').innerHTML=h;
+  let msg;
+  if(!hasS)msg='Add your starting amount and I’ll show what’s left and what you kept. Spending is only half the story.';
+  else if(spent>start)msg='You’ve spent more than you started with. Look at the longest bars below and pick one to trim next month.';
+  else{const r=start>0?Math.round(left/start*100):0;msg='You’re holding on to '+r+'% of what you started with. '+(r>=30?'That’s a real cushion.':r>=10?'Not bad. Not a monastery, but not a disaster.':'Thin margin. The last week will be tight.')}
+  if(hasS&&hasE){const gap=left-mr.end;if(Math.abs(gap)>=1)msg+=gap>0?' '+inr(gap)+' is missing between the ledger and your real balance. Chai, tips, mystery UPI, something unlogged.':' Your real balance is '+inr(-gap)+' higher than the ledger predicts. Did some money arrive?'}
+  if(hasS&&totBud>start)msg+=' Your category budgets add up to '+inr(totBud)+', more than you start with ('+inr(start)+'). Optimistic. I respect it.';
+  $('#bMsg').textContent=msg;
+  // rows
+  if(fill){const bl=$('#bList');bl.textContent='';
+    S.cats.forEach(c=>{const row=document.createElement('div');row.className='brow';row.dataset.c=c;
+      row.innerHTML='<div class="bh"><b></b><span class="hint"></span></div><input type="number" inputmode="decimal" min="0" step="1"><div class="bar"><i></i></div><small class="hint"></small>';
+      row.querySelector('b').textContent=c;const inp=row.querySelector('input');
+      inp.setAttribute('aria-label','Monthly budget for '+c);inp.placeholder='Monthly budget in ₹';inp.value=S.bud[c]||'';
+      inp.onchange=()=>{const v=numOrNull(inp.value);if(v>0)S.bud[c]=v;else delete S.bud[c];save();renderBudget(false)};
+      bl.append(row)})}
+  $$('#bList .brow').forEach(row=>{const c=row.dataset.c,sp=byCat[c]||0,bud=+S.bud[c]||0;
+    row.querySelector('.bh span').textContent=bud?inr(sp)+' of '+inr(bud):inr(sp)+' spent';
+    const bar=row.querySelector('.bar'),i=bar.querySelector('i');bar.classList.toggle('over',bud>0&&sp>bud);
+    const pct=bud?Math.min(100,sp/bud*100):0;requestAnimationFrame(()=>{i.style.width=pct+'%'});
+    row.querySelector('small').textContent=!bud?(sp?'No limit set.':'No limit, no spending. Peaceful.'):sp>bud?'Over by '+inr(sp-bud)+'. The budget was a suggestion, apparently.':sp>=bud*.8?'Almost there. '+inr(bud-sp)+' left.':inr(bud-sp)+' left. Comfortable.'});
+  // charts
+  const cats=S.cats.filter(c=>S.bud[c]||byCat[c]),hasAny=cats.length>0||hasS;
+  $('#bCharts').hidden=!hasAny;if(!hasAny)return;
+  Chart.defaults.font.family='Karla, sans-serif';Chart.defaults.color=getComputedStyle(document.documentElement).getPropertyValue('--mute').trim();
+  const grid='rgba(120,100,70,.15)',tick=v=>'₹'+v,tip={callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':c.label+': ')+inr(c.raw)}};
+  draw('#cBud',{type:'bar',data:{labels:cats,datasets:[{label:'Budget',data:cats.map(c=>+S.bud[c]||0),backgroundColor:'#9ab8ff',borderRadius:3},{label:'Spent',data:cats.map(c=>byCat[c]||0),backgroundColor:cats.map(c=>S.bud[c]&&(byCat[c]||0)>S.bud[c]?'#e8556d':'#7b6bd6'),borderRadius:3}]},
+    options:{indexAxis:'y',maintainAspectRatio:false,animation:{duration:800},plugins:{legend:{position:'bottom'},tooltip:tip},scales:{x:{ticks:{callback:tick},grid:{color:grid}},y:{grid:{display:false}}}}});
+  const daily=Array(dim).fill(0);list.forEach(e=>{daily[+e.date.slice(8)-1]+=e.amt});
+  const now=new Date(),nm=ymd(now).slice(0,7),last=m===nm?now.getDate():(m<nm?dim:0);let cum=0;
+  const act=daily.map((v,i)=>{cum+=v;return i<last?(hasS?start-cum:cum):null});
+  const sets=[{label:hasS?'Money left':'Spent so far',data:act,borderColor:'#e0a800',backgroundColor:'rgba(255,201,51,.25)',fill:true,tension:.25,pointRadius:0,borderWidth:3}];
+  if(totBud>0)sets.push({label:'Budget pace',data:daily.map((v,i)=>hasS?start-totBud*(i+1)/dim:totBud*(i+1)/dim),borderColor:'#6fd0ef',borderDash:[6,5],fill:false,pointRadius:0,borderWidth:2});
+  draw('#cBurn',{type:'line',data:{labels:daily.map((v,i)=>i+1),datasets:sets},
+    options:{maintainAspectRatio:false,animation:{duration:900},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:tip},scales:{y:{ticks:{callback:tick},grid:{color:grid}},x:{grid:{display:false}}}}});
+  const sl=sum(list,'cat'),lab=sl.map(x=>x[0]),dat=sl.map(x=>x[1]),col=lab.map((_,i)=>PAL[i%PAL.length]);
+  if(hasS&&start>spent){lab.push('Left over');dat.push(start-spent);col.push('#7fd6a8')}
+  if(dat.length)draw('#cSplit',{type:'doughnut',data:{labels:lab,datasets:[{data:dat,backgroundColor:col,borderColor:getComputedStyle(document.documentElement).getPropertyValue('--card').trim(),borderWidth:3}]},
+    options:{maintainAspectRatio:false,cutout:'58%',animation:{animateRotate:true,duration:900},plugins:{legend:{position:'bottom',labels:{boxWidth:12}},tooltip:tip}}});
+}
+/* ===== HOME STRIP, USUALS, FUND ===== */
+function renderHome(){
+  const t=new Date(),m=ymd(t).slice(0,7),dl=new Date(t.getFullYear(),t.getMonth()+1,0).getDate()-t.getDate()+1;
+  const sp=S.exp.filter(e=>e.date.slice(0,7)===m).reduce((s,e)=>s+e.amt,0),mr=S.mon[m]||{},tb=Object.values(S.bud).reduce((s,v)=>s+(+v||0),0);
+  const pool=mr.start!=null?mr.start:(tb>0?tb:null),left=pool!=null?pool-sp:null;
+  const card=(l,v,s)=>'<div><small class="hint">'+l+'</small><b>'+v+'</b>'+(s?'<small class="hint">'+s+'</small>':'')+'</div>';
+  let h=card('Spent this month',inr(sp));
+  if(left!=null)h+=card(left>=0?'Left this month':'Over by',inr(Math.abs(left)))+card('Safe to spend today',left>0?inr(left/dl):'₹0',dl+(dl>1?' days':' day')+' to go');
+  else h+='<div><small class="hint">Add a starting amount in Budget and I’ll tell you what is safe to spend each day.</small></div>';
+  const g=S.goal;
+  if(g&&g.target>0){const p=Math.min(100,Math.round((g.saved||0)/g.target*100));h+='<div style="grid-column:1/-1"><small class="hint">'+esc(g.name||'Independence fund')+': '+inr(g.saved||0)+' of '+inr(g.target)+' ('+p+'%)</small><div class="bar"><i style="width:'+p+'%"></i></div></div>'}
+  $('#home').innerHTML=h;renderUsual();
+}
+function renderUsual(){
+  const c={};S.exp.forEach(e=>{if(!e.desc)return;const k=e.desc.toLowerCase()+'|'+e.cat+'|'+e.pay;if(!c[k])c[k]={n:0,e};c[k].n++;c[k].e=e});
+  const top=Object.values(c).filter(x=>x.n>=2).sort((a,b)=>b.n-a.n).slice(0,5),box=$('#usualChips');
+  $('#usual').hidden=!top.length;box.textContent='';
+  top.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=x.e.desc+' '+inr(x.e.amt);b.onclick=()=>loadEntry(x.e,false);box.append(b)});
+}
+$('#saveGoal').onclick=()=>{const t=numOrNull($('#gTarget').value),s=numOrNull($('#gSaved').value),n=$('#gName').value.trim();
+  S.goal=t>0?{name:n,target:t,saved:s||0}:null;save();renderGoal(false);renderHome();stamp(t>0?'Fund saved. Future you is thrilled.':'Fund cleared.')};
+function renderGoal(fill){const g=S.goal;
+  if(fill){$('#gName').value=g?g.name:'';$('#gTarget').value=g?g.target:'';$('#gSaved').value=g&&g.saved!=null?g.saved:''}
+  const p=g&&g.target>0?Math.min(100,(g.saved||0)/g.target*100):0;requestAnimationFrame(()=>{$('#gBar').style.width=p+'%'});
+  $('#gMsg').textContent=!g?'No fund yet. Pick a number that scares you slightly.':p>=100?'Target reached. Go be unreasonably free.':Math.round(p)+'% there. '+inr(g.target-(g.saved||0))+' to go. Small deposits, large freedom.'}
 /* ===== LOOK ===== */
 function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
   $$(".pick>div").forEach(d=>d.hidden=d.dataset.for!==m);render()}
@@ -393,7 +522,7 @@ function range(){
   if(mode==="year"){const y=$("#pYr").value||new Date().getFullYear();return[y+"-01-01",y+"-12-31"]}
   return[$("#pFrom").value,$("#pTo").value]
 }
-const PAL=["#ff8aa1","#6fd0ef","#ffc65c","#9ab8ff","#c3a0ff","#ffa77a","#7fd6a8","#ff9ee0","#8fe0d0"];
+const PAL=["#ffc933","#7b6bd6","#5fc9c0","#ff7a59","#9ab8ff","#c3a0ff","#7fd6a8","#f2a65a","#b8a98a"];
 const sum=(l,k)=>{const o={};l.forEach(e=>o[e[k]]=(o[e[k]]||0)+e.amt);return Object.entries(o).sort((a,b)=>b[1]-a[1])};
 function draw(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),cfg)}
 function render(){
@@ -438,6 +567,7 @@ function insights(list,tot){
     out.push("Biggest chunk: <b>"+esc(top[0])+"</b> at "+share+"% ("+inr(top[1])+"). "+(share>45?"That’s nearly half. Worth a hard look, not a guilt trip.":"Spread out nicely. No single villain."));
     const food=(bc.find(x=>x[0]==="Food")||[0,0])[1],cof=list.filter(e=>/coffee|chai|tea|cafe|café|starbucks/i.test(e.desc)).reduce((s,e)=>s+e.amt,0);
     if(cof>0)out.push("Chai, coffee and cafe stops: <b>"+inr(cof)+"</b>. A flask at home pays for itself fast.");
+    const bk=list.filter(e=>/book|kindle|library|stationer|notebook|journal/i.test(e.desc+" "+e.cat)).reduce((s,e)=>s+e.amt,0);if(bk>0)out.push("Books and stationery: <b>"+inr(bk)+"</b>. Research. Obviously research.");
     const sh=(bc.find(x=>x[0]==="Shopping")||[0,0])[1];if(sh>tot*.25)out.push("Shopping is "+Math.round(sh/tot*100)+"% of this. Try the 48-hour rule: if you still want it Thursday, it’s a want, not a whim.");
     const big=[...list].sort((x,y)=>y.amt-x.amt)[0];out.push("Priciest single moment: <b>"+inr(big.amt)+"</b> on "+esc(big.desc||big.cat)+". Own it.");
     if(bp[0])out.push(esc(bp[0][0])+" did most of the paying ("+Math.round(bp[0][1]/tot*100)+"%). "+(bp[0][0]==="Cash"?"Cash vanishes without a trace. Note it down when it leaves.":"Easy to tap, easy to forget. Glance at the list below."));

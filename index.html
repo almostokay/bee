@@ -30,6 +30,10 @@ button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .wrap{max-width:980px;margin:0 auto;padding:18px 18px 70px}
 [hidden]{display:none!important}
+.mini{min-height:44px;padding:4px 14px;border:2px solid var(--line);background:var(--paper);border-radius:14px;cursor:pointer;font-weight:700}
+.mini:active{background:var(--accent-soft)}
+.acts{display:flex;gap:6px;align-items:center}
+@media(max-width:680px){#weekList li{flex-wrap:wrap}#weekList .acts{width:100%;justify-content:flex-end}}
 /* login */
 #login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .loginCard{background:var(--card);padding:34px 30px 30px;max-width:380px;width:100%;transform:rotate(-1.2deg);box-shadow:3px 5px 0 var(--line);border:1px solid var(--line);position:relative}
@@ -131,8 +135,13 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
       <label for="date">Date</label>
       <input id="date" type="date" required>
       <p class="err" id="addErr" role="alert"></p>
-      <button class="btn" type="submit" style="width:100%;margin-top:10px;font-size:1.15rem">Stick it in the ledger</button>
+      <button class="btn" id="saveBtn" type="submit" style="width:100%;margin-top:10px;font-size:1.15rem">Stick it in the ledger</button>
+      <button class="btn ghost" id="cancelEdit" type="button" hidden style="width:100%;margin-top:10px">Never mind, cancel editing</button>
     </form>
+    <h3 style="margin-top:34px">The last 7 days</h3>
+    <p class="hint" id="weekSum"></p>
+    <p class="hint">Edit fixes an entry. Copy starts a new one from it, so you can change the date or details. Edits and deletes change this app only, not rows already sent to your Sheet.</p>
+    <ul class="list" id="weekList"></ul>
   </section>
 
   <!-- LOOK -->
@@ -291,11 +300,11 @@ function boot(){
   if(booted)return;booted=true;
   const t=new Date();$("#date").value=ymd(t);$("#pDay").value=ymd(t);$("#pMon").value=ymd(t).slice(0,7);
   $("#pYr").value=t.getFullYear();$("#pFrom").value=ymd(new Date(t.getFullYear(),t.getMonth(),1));$("#pTo").value=ymd(t);
-  $("#url").value=S.url||"";selCat=S.cats[0];selPay=S.pays[0];chips();setMode(mode);
+  $("#url").value=S.url||"";selCat=S.cats[0];selPay=S.pays[0];chips();renderWeek();setMode(mode);
 }
 function show(v){["add","look","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
   $$("nav button[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
-  if(v==="look")render();window.scrollTo({top:0,behavior:"smooth"})}
+  if(v==="look")render();if(v==="add")renderWeek();window.scrollTo({top:0,behavior:"smooth"})}
 $$("nav button[data-v]").forEach(b=>b.onclick=()=>show(b.dataset.v));
 
 function chipSet(box,items,get,set,label){
@@ -323,10 +332,12 @@ $("#expForm").addEventListener("submit",e=>{
   if(!(amt>0)){$("#addErr").textContent="An amount helps. Even a guess.";return}
   $("#addErr").textContent="";
   const x={id:Date.now().toString(36),date:$("#date").value,amt,cat:selCat,desc:$("#desc").value.trim(),pay:selPay};
-  S.exp.push(x);save();syncSheet(x);
-  $("#amount").value="";$("#desc").value="";$$(".addrow").forEach(r=>r.remove());
+  const wasEdit=!!editId;
+  if(editId){const i=S.exp.findIndex(z=>z.id===editId);if(i>-1){x.id=editId;S.exp[i]=x}else S.exp.push(x);save()}
+  else{S.exp.push(x);save();syncSheet(x)}
+  $("#amount").value="";$("#desc").value="";$$(".addrow").forEach(r=>r.remove());endEdit();renderWeek();
   $("#addHint").textContent=hints[Math.floor(Math.random()*hints.length)];
-  stamp(["Noted. Judgement-free.","Stuck it in.","Logged. Future you says thanks."][Math.floor(Math.random()*3)]);
+  stamp(wasEdit?"Updated. Much better.":["Noted. Judgement-free.","Stuck it in.","Logged. Future you says thanks."][Math.floor(Math.random()*3)]);
   $("#amount").focus();
 });
 function stamp(t){const s=$("#stamp");s.textContent=t;s.hidden=false;s.style.animation="none";s.offsetWidth;s.style.animation="";clearTimeout(stamp.t);stamp.t=setTimeout(()=>s.hidden=true,1900)}
@@ -339,6 +350,37 @@ function syncSheet(x){
 $("#saveUrl").onclick=()=>{S.url=$("#url").value.trim();save();stamp(S.url?"Link saved.":"Link cleared.")};
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark";if(Object.keys(charts).length)render()};
 
+/* ===== LAST 7 DAYS: edit / copy / delete ===== */
+let editId=null;
+function endEdit(){if(!editId)return;editId=null;$("#saveBtn").textContent="Stick it in the ledger";$("#cancelEdit").hidden=true;$("#date").value=ymd(new Date())}
+$("#cancelEdit").onclick=()=>{$("#amount").value="";$("#desc").value="";$("#addHint").textContent="Cancelled. Nothing was changed.";endEdit()};
+function loadEntry(e,edit){
+  if(!S.cats.includes(e.cat))S.cats.push(e.cat);if(!S.pays.includes(e.pay))S.pays.push(e.pay);
+  selCat=e.cat;selPay=e.pay;chips();
+  $("#amount").value=e.amt;$("#desc").value=e.desc||"";$("#date").value=edit?e.date:ymd(new Date());
+  editId=edit?e.id:null;
+  $("#saveBtn").textContent=edit?"Save changes":"Stick it in the ledger";$("#cancelEdit").hidden=!edit;
+  $("#addHint").textContent=edit?"Editing an old entry. Fix it, then save.":"Copied. Change the date or details, then stick it in.";
+  window.scrollTo({top:0,behavior:"smooth"});$("#amount").focus();
+}
+function renderWeek(){
+  const t=new Date(),f=new Date(t);f.setDate(t.getDate()-6);const a=ymd(f);
+  const l=S.exp.filter(e=>e.date>=a).sort((x,y)=>y.date.localeCompare(x.date)||y.id.localeCompare(x.id));
+  const tot=l.reduce((s,e)=>s+e.amt,0);
+  $("#weekSum").textContent=l.length?inr(tot)+" across "+l.length+(l.length>1?" entries":" entry")+" this week.":"";
+  const ul=$("#weekList");ul.textContent="";
+  if(!l.length){const li=document.createElement("li");li.className="hint";li.textContent="Nothing in the last 7 days. Quiet week, or quiet logging?";ul.append(li);return}
+  l.forEach(e=>{const li=document.createElement("li");
+    li.innerHTML='<div class="d"><b></b><small></small></div><b class="p"></b><div class="acts"><button type="button" class="mini" data-a="e">Edit</button><button type="button" class="mini" data-a="c">Copy</button><button type="button" class="x" aria-label="Delete this entry">×</button></div>';
+    li.querySelector(".d b").textContent=e.desc||e.cat;li.querySelector("small").textContent=e.date+", "+e.cat+", "+e.pay;li.querySelector(".p").textContent=inr(e.amt);
+    li.querySelector('[data-a="e"]').onclick=()=>loadEntry(e,true);
+    li.querySelector('[data-a="c"]').onclick=()=>loadEntry(e,false);
+    const del=li.querySelector(".x");
+    del.onclick=()=>{if(del.dataset.s){S.exp=S.exp.filter(z=>z.id!==e.id);if(editId===e.id)endEdit();save();renderWeek();return}
+      del.dataset.s=1;del.textContent="Sure?";del.style.fontSize=".9rem";
+      setTimeout(()=>{if(del.isConnected){del.textContent="×";del.style.fontSize="";delete del.dataset.s}},3000)};
+    ul.append(li)});
+}
 /* ===== LOOK ===== */
 function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
   $$(".pick>div").forEach(d=>d.hidden=d.dataset.for!==m);render()}

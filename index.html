@@ -12,11 +12,11 @@ README (short version; the full setup guide is inside the app under "Setup")
 - Auth: this is a MOCK. See the "AUTH" comment block in the script for how to harden it.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Karla:wght@400;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--paper:#fbf3dc;--card:#fffdf6;--ink:#1d1a26;--mute:#625c70;--line:#e6d7a6;--accent:#ffc933;--accent-deep:#8a5a00;--accent-soft:#fff0b3;--note:#c6eee3;--note-ink:#12332d;--bad:#c8402f;
---serif:"Fraunces",Georgia,serif;--sans:"Karla","Trebuchet MS",sans-serif;--hand:"Caveat","Segoe Print",cursive;
+--serif:"Fraunces",Georgia,serif;--sans:"Literata",Georgia,serif;--hand:"Caveat","Segoe Print",cursive;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#17151f;--card:#211e2c;--ink:#f7f1de;--mute:#b0a9bf;--line:#3b364a;--accent:#ffd23f;--accent-deep:#ffd23f;--accent-soft:#3d3516;--note:#2c5b53;--note-ink:#e2fff6;--bad:#ff8f80;color-scheme:dark}}
 :root[data-theme="dark"]{--paper:#17151f;--card:#211e2c;--ink:#f7f1de;--mute:#b0a9bf;--line:#3b364a;--accent:#ffd23f;--accent-deep:#ffd23f;--accent-soft:#3d3516;--note:#2c5b53;--note-ink:#e2fff6;--bad:#ff8f80;color-scheme:dark}
@@ -42,7 +42,16 @@ button,input,select{font:inherit;color:inherit}
 .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .8s ease-out}
 .bar.over i{background:#e8556d}
 .cwrap{position:relative;height:280px}
-.sheet{position:relative}
+h2{font-style:italic}
+.warn{background:var(--note);color:var(--note-ink);padding:14px 16px;margin:6px 0 10px;border:2px dashed var(--ink)}
+ul.list li.warn{display:block}.warn p{margin:0 0 10px}.warn select{margin-bottom:10px;background:var(--card);color:var(--ink)}
+.warn .btn{min-height:48px;box-shadow:none;margin-right:8px}
+.shelf{display:flex;align-items:flex-end;gap:3px;height:54px;margin:0 0 8px}
+.shelf i{display:block;width:14px;border-radius:2px 2px 0 0}
+.shelf i:nth-child(1){height:44px;background:#b5651d}.shelf i:nth-child(2){height:52px;background:#ffc933}.shelf i:nth-child(3){height:40px;width:11px;background:#5fc9c0}.shelf i:nth-child(4){height:50px;background:#7b6bd6}.shelf i:nth-child(5){height:46px;width:17px;background:#ff7a59}.shelf i:nth-child(6){height:38px;width:10px;background:#6b3e1f}.shelf i:nth-child(7){height:54px;background:#9ab8ff}.shelf i:nth-child(8){height:42px;background:#c3a0ff;transform:rotate(8deg);transform-origin:bottom left;margin-left:8px}
+.plate{display:inline-block;border:2px solid var(--ink);border-radius:50%/60%;padding:4px 24px;font-family:var(--serif);font-style:italic;margin-bottom:12px;letter-spacing:.03em}
+.motto{font-family:var(--serif);font-style:italic;color:var(--mute);font-size:.98rem;line-height:1.35;margin:0 0 4px}
+.sheet{position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,rgba(100,140,170,.13) 31px,rgba(100,140,170,.13) 32px)}
 .sheet:before{content:"";position:absolute;top:0;right:26px;width:22px;height:50px;background:var(--ink);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);pointer-events:none}
 @media(max-width:680px){#weekList li{flex-wrap:wrap}#weekList .acts{width:100%;justify-content:flex-end}}
 /* login */
@@ -63,8 +72,8 @@ input:focus{border-color:var(--accent);outline:none}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0 14px}
 header h1{font-size:2.1rem;transform:rotate(-.8deg)}
 nav{display:flex;gap:6px;flex-wrap:wrap}
-nav button{min-height:46px;padding:6px 16px;background:var(--card);border:2px solid var(--line);border-radius:4px 4px 0 0;cursor:pointer;font-weight:700}
-nav button[aria-current="true"]{background:var(--accent-soft);border-color:var(--accent)}
+nav button{min-height:46px;padding:6px 16px;background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:3px 3px 0 0;cursor:pointer;font-weight:700;font-family:var(--serif)}
+nav button[aria-current="true"]{background:var(--accent);color:#1d1a26;border-color:var(--ink)}
 .sheet{background:var(--card);border:1px solid var(--line);padding:22px;box-shadow:3px 4px 0 var(--line);animation:turn .35s ease-out}
 @keyframes turn{from{opacity:0;transform:translateY(8px) rotate(.4deg)}}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -105,13 +114,15 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 
 <section id="login" hidden>
   <div class="loginCard">
+    <div class="plate">Ex Libris, Prof. B</div>
+    <div class="motto">Reads the footnotes. Funds her own plot twists.</div>
     <h1>B’s</h1>
-    <p id="loginMsg">Private. Just you. Nobody else gets to judge the bookshop receipts.</p>
+    <p id="loginMsg">Private stacks. If you are not Prof. B, kindly return this page to its shelf.</p>
     <form id="loginForm" autocomplete="on">
       <label for="pw" id="pwLabel">Password</label>
       <input id="pw" type="password" autocomplete="current-password" required minlength="6">
       <p class="err" id="loginErr" role="alert"></p>
-      <button class="btn" type="submit" id="loginBtn" style="width:100%;margin-top:8px">Let me in</button>
+      <button class="btn" type="submit" id="loginBtn" style="width:100%;margin-top:8px">Open the stacks</button>
     </form>
     <div class="ring"></div>
   </div>
@@ -119,12 +130,12 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 
 <div class="wrap" id="app" hidden>
   <header>
-    <div><div class="hand">a room of one’s own (and the rent for it)</div><h1>B’s</h1></div>
+    <div><div class="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="hand">Prof. B’s office hours: dreams, footnoted and funded</div><h1>B’s</h1></div>
     <nav aria-label="Sections">
-      <button data-v="add" aria-current="true">Jot it down</button>
-      <button data-v="look">Where’d it go?</button>
-      <button data-v="budget">Budget</button>
-      <button data-v="setup">Setup</button>
+      <button data-v="add" aria-current="true">New entry</button>
+      <button data-v="look">The archives</button>
+      <button data-v="budget">The syllabus</button>
+      <button data-v="setup">Back office</button>
       <button id="out">Lock up</button>
     </nav>
   </header>
@@ -154,7 +165,7 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
     </form>
     <h3 style="margin-top:34px">The last 7 days</h3>
     <p class="hint" id="weekSum"></p>
-    <p class="hint">Edit fixes an entry. Copy starts a new one from it, so you can change the date or details. Edits and deletes change this app only, not rows already sent to your Sheet.</p>
+    <p class="hint">Edit fixes an entry. Copy starts a new one from it, so you can change the date or details. Edits and deletes are sent to your Google Sheet too, once the updated script is deployed (see Back office).</p>
     <ul class="list" id="weekList"></ul>
   </section>
 
@@ -189,7 +200,7 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 
   <!-- BUDGET -->
   <section class='sheet' id='v-budget' hidden>
-    <h2>The money plan</h2>
+    <h2>The syllabus for the month</h2>
     <p class='hint'>Say what you start the month with, give each category a limit, and see how the plan holds up against reality. At month end, add what you actually have left.</p>
     <div class='pick'>
       <div><label for='bMon'>Month</label><input type='month' id='bMon'></div>
@@ -221,7 +232,11 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
 
   <!-- SETUP -->
   <section class="sheet" id="v-setup" hidden>
-    <h2>Setup</h2>
+    <h2>Back office</h2>
+    <details open><summary>Categories</summary><div id='mCat'></div></details>
+    <details><summary>Payment methods</summary><div id='mPay'></div></details>
+    <p class='hint'>Removing something that is in use lets you move those entries to another one first. Moved entries are updated in your Google Sheet too, a few per second.</p>
+    <h3 style='margin-top:22px'>Google Sheet</h3>
     <p>Everything is saved on this device first. To also send each expense to a Google Sheet, follow the steps and paste your link here.</p>
     <p class="hint" id="cloud"></p>
     <label for="url">Apps Script web app URL</label>
@@ -233,20 +248,42 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
         <li>Make a new Google Sheet. Name it anything.</li>
         <li>Extensions → Apps Script. Delete what’s there and paste the script below.</li>
         <li>Deploy → New deployment → Web app. Execute as: Me. Who has access: Anyone. Deploy and copy the URL.</li>
-        <li>Paste the URL above. Add one expense. A row appears with the header: Date | Amount | Category | Description | Payment Method | Month | Year.</li>
+        <li>Paste the URL above. Add one expense. A row appears with the header: Date | Amount | Category | Description | Payment Method | Month | Year | ID.</li>
       </ol>
-<pre id="gs">function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var s = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
-  if (s.getLastRow() == 0) {
-    s.appendRow(['Date','Amount','Category','Description','Payment Method','Month','Year']);
-    s.getRange(1,1,1,7).setFontWeight('bold'); s.setFrozenRows(1);
-  }
-  var p = e.parameter, d = new Date(p.date);
-  s.appendRow([p.date, Number(p.amount), p.category, p.description, p.payment,
-    d.toLocaleString('en-US',{month:'long'}), d.getFullYear()]);
+<pre id="gs">var HEAD = ['Date','Amount','Category','Description','Payment Method','Month','Year','ID'];
+function doPost(e) {
+  var lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    var p = e.parameter, ss = SpreadsheetApp.getActiveSpreadsheet();
+    var s = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
+    if (s.getLastRow() == 0) { s.appendRow(HEAD); s.setFrozenRows(1); }
+    s.getRange(1,1,1,8).setValues([HEAD]).setFontWeight('bold');
+    var act = p.action || 'add';
+    if (act == 'add') { s.appendRow(rowOf(p)); }
+    else {
+      var r = findRow(s, p);
+      if (act == 'delete' && r) s.deleteRow(r);
+      if (act == 'update') { if (r) s.getRange(r,1,1,8).setValues([rowOf(p)]); else s.appendRow(rowOf(p)); }
+    }
+  } finally { lock.releaseLock(); }
   return ContentService.createTextOutput('ok');
-}</pre></details>
+}
+function rowOf(p) {
+  var d = new Date(p.date);
+  return [p.date, Number(p.amount), p.category, p.description, p.payment,
+    d.toLocaleString('en-US',{month:'long'}), d.getFullYear(), p.id];
+}
+function findRow(s, p) {
+  var v = s.getDataRange().getValues(), i;
+  for (i = v.length - 1; i > 0; i--) if (String(v[i][7]) === String(p.id)) return i + 1;
+  for (i = v.length - 1; i > 0; i--) {  // rows saved before IDs existed
+    if (!v[i][7] && day(v[i][0]) === p.o_date && Number(v[i][1]) === Number(p.o_amount) &&
+        v[i][2] === p.o_category && String(v[i][3]) === p.o_description && v[i][4] === p.o_payment) return i + 1;
+  }
+  return 0;
+}
+function day(d) { return d instanceof Date ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(d); }</pre>
+<p class="hint">Already deployed an older script? Paste this over it, then Deploy, Manage deployments, pencil icon, Version: New version, Deploy. Your link stays the same.</p></details>
     <details><summary>Plain HTML form (no JavaScript needed)</summary>
 <pre>&lt;form method="POST" action="YOUR_WEB_APP_URL"&gt;
   &lt;input name="date" type="date" required&gt;
@@ -329,12 +366,12 @@ async function gate(){
   if(sessOK()){$("#login").hidden=true;$("#app").hidden=false;boot();return}
   $("#app").hidden=true;$("#login").hidden=false;
   $("#pwLabel").textContent=first?"Choose a password (6+ characters)":"Password";
-  $("#loginBtn").textContent=first?"Start my ledger":"Let me in";
-  if(first)$("#loginMsg").textContent="First time? Pick a password. Not your birthday. We both know.";
+  $("#loginBtn").textContent=first?"Begin chapter one":"Open the stacks";
+  if(first)$("#loginMsg").textContent="First chapter: choose a password. Not your birthday. Even the footnotes would guess it.";
 }
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();const h=await hash($("#pw").value),stored=authHash;
-  if(!stored){await setAuth(h)}else if(stored!==h){$("#loginErr").textContent="Nope. Try again, slowly.";return}
+  if(!stored){await setAuth(h)}else if(stored!==h){$("#loginErr").textContent="Wrong passphrase. The library is closed to impostors.";return}
   try{sessionStorage.setItem("sl_sess",Date.now()+8*36e5)}catch(e){}
   $("#pw").value="";$("#loginErr").textContent="";gate();
 });
@@ -350,7 +387,7 @@ function boot(){
 }
 function show(v){["add","look","budget","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
   $$("nav button[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
-  if(v==="look")render();if(v==="add")renderWeek();if(v==="budget")renderBudget(true);window.scrollTo({top:0,behavior:"smooth"})}
+  if(v==="look")render();if(v==="add")renderWeek();if(v==="budget")renderBudget(true);if(v==="setup")renderManage();window.scrollTo({top:0,behavior:"smooth"})}
 $$("nav button[data-v]").forEach(b=>b.onclick=()=>show(b.dataset.v));
 
 function chipSet(box,items,get,set,label){
@@ -372,25 +409,25 @@ function chips(){
   chipSet("#payChips",S.pays,()=>selPay,v=>selPay=v,"method");
   $$(".addrow").forEach((r,i)=>{if(i>0||!r.isConnected)return});
 }
-const hints=["Be honest. The ledger has seen worse.","Bookshop receipts count. Yes, all of them.","Small spends are still spends. Sneaky little things.","Log it now. Memory is a terrible accountant.","Every rupee you track is a rupee you answer to no one for."];
+const hints=["Be honest. The ledger has seen worse.","Bookshop receipts count. Yes, all of them.","Small spends are still spends. Sneaky little things.","Log it now. Memory is a terrible accountant.","Every rupee you track is a rupee you answer to no one for.","Dreams need a budget line. So does the sequel.","Independence is just a long reading list with a savings column."];
 $("#expForm").addEventListener("submit",e=>{
   e.preventDefault();const amt=parseFloat($("#amount").value);
   if(!(amt>0)){$("#addErr").textContent="An amount helps. Even a guess.";return}
   $("#addErr").textContent="";
   const x={id:Date.now().toString(36),date:$("#date").value,amt,cat:selCat,desc:$("#desc").value.trim(),pay:selPay};
   const wasEdit=!!editId;
-  if(editId){const i=S.exp.findIndex(z=>z.id===editId);if(i>-1){x.id=editId;S.exp[i]=x}else S.exp.push(x);save()}
+  if(editId){const i=S.exp.findIndex(z=>z.id===editId);if(i>-1){const old=S.exp[i];x.id=editId;S.exp[i]=x;save();syncSheet(x,"update",old)}else{S.exp.push(x);save();syncSheet(x)}}
   else{S.exp.push(x);save();syncSheet(x)}
   $("#amount").value="";$("#desc").value="";$$(".addrow").forEach(r=>r.remove());endEdit();renderWeek();
   $("#addHint").textContent=hints[Math.floor(Math.random()*hints.length)];
-  stamp(wasEdit?"Updated. Much better.":["Noted. Judgement-free.","Stuck it in.","Logged. Future you says thanks."][Math.floor(Math.random()*3)]);
+  stamp(wasEdit?"Updated. Much better.":["Noted. Shelved.","Filed under ‘Life’.","Logged. Future you says thanks.","Added to the archive."][Math.floor(Math.random()*4)]);
   $("#amount").focus();
 });
 function stamp(t){const s=$("#stamp");s.textContent=t;s.hidden=false;s.style.animation="none";s.offsetWidth;s.style.animation="";clearTimeout(stamp.t);stamp.t=setTimeout(()=>s.hidden=true,1900)}
-function syncSheet(x){
+function syncSheet(x,act,old){
   if(!S.url)return;
-  const m=new Date(x.date+"T00:00:00");
-  const p=new URLSearchParams({date:x.date,amount:x.amt,category:x.cat,description:x.desc,payment:x.pay});
+  const p=new URLSearchParams({action:act||"add",id:x.id,date:x.date,amount:x.amt,category:x.cat,description:x.desc,payment:x.pay});
+  if(old){p.set("o_date",old.date);p.set("o_amount",old.amt);p.set("o_category",old.cat);p.set("o_description",old.desc||"");p.set("o_payment",old.pay)}
   try{fetch(S.url,{method:"POST",mode:"no-cors",body:p}).catch(()=>stamp("Saved here; Sheet didn’t answer."))}catch(e){}
 }
 $("#saveUrl").onclick=()=>{S.url=$("#url").value.trim();save();stamp(S.url?"Link saved.":"Link cleared.")};
@@ -422,7 +459,7 @@ function renderWeek(){renderHome();
     li.querySelector('[data-a="e"]').onclick=()=>loadEntry(e,true);
     li.querySelector('[data-a="c"]').onclick=()=>loadEntry(e,false);
     const del=li.querySelector(".x");
-    del.onclick=()=>{if(del.dataset.s){S.exp=S.exp.filter(z=>z.id!==e.id);if(editId===e.id)endEdit();save();renderWeek();return}
+    del.onclick=()=>{if(del.dataset.s){syncSheet(e,"delete",e);S.exp=S.exp.filter(z=>z.id!==e.id);if(editId===e.id)endEdit();save();renderWeek();return}
       del.dataset.s=1;del.textContent="Sure?";del.style.fontSize=".9rem";
       setTimeout(()=>{if(del.isConnected){del.textContent="×";del.style.fontSize="";delete del.dataset.s}},3000)};
     ul.append(li)});
@@ -469,7 +506,7 @@ function renderBudget(fill){
   // charts
   const cats=S.cats.filter(c=>S.bud[c]||byCat[c]),hasAny=cats.length>0||hasS;
   $('#bCharts').hidden=!hasAny;if(!hasAny)return;
-  Chart.defaults.font.family='Karla, sans-serif';Chart.defaults.color=getComputedStyle(document.documentElement).getPropertyValue('--mute').trim();
+  Chart.defaults.font.family='Literata, Georgia, serif';Chart.defaults.color=getComputedStyle(document.documentElement).getPropertyValue('--mute').trim();
   const grid='rgba(120,100,70,.15)',tick=v=>'₹'+v,tip={callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':c.label+': ')+inr(c.raw)}};
   draw('#cBud',{type:'bar',data:{labels:cats,datasets:[{label:'Budget',data:cats.map(c=>+S.bud[c]||0),backgroundColor:'#9ab8ff',borderRadius:3},{label:'Spent',data:cats.map(c=>byCat[c]||0),backgroundColor:cats.map(c=>S.bud[c]&&(byCat[c]||0)>S.bud[c]?'#e8556d':'#7b6bd6'),borderRadius:3}]},
     options:{indexAxis:'y',maintainAspectRatio:false,animation:{duration:800},plugins:{legend:{position:'bottom'},tooltip:tip},scales:{x:{ticks:{callback:tick},grid:{color:grid}},y:{grid:{display:false}}}}});
@@ -510,6 +547,52 @@ function renderGoal(fill){const g=S.goal;
   if(fill){$('#gName').value=g?g.name:'';$('#gTarget').value=g?g.target:'';$('#gSaved').value=g&&g.saved!=null?g.saved:''}
   const p=g&&g.target>0?Math.min(100,(g.saved||0)/g.target*100):0;requestAnimationFrame(()=>{$('#gBar').style.width=p+'%'});
   $('#gMsg').textContent=!g?'No fund yet. Pick a number that scares you slightly.':p>=100?'Target reached. Go be unreasonably free.':Math.round(p)+'% there. '+inr(g.target-(g.saved||0))+' to go. Small deposits, large freedom.'}
+/* ===== MANAGE CATEGORIES / PAYMENT METHODS ===== */
+const KIND={cat:{list:()=>S.cats,field:'cat',box:'#mCat',word:'category'},pay:{list:()=>S.pays,field:'pay',box:'#mPay',word:'payment method'}};
+let pending=null;
+function renderManage(){manageBox('cat');manageBox('pay')}
+function afterManage(){chips();renderManage();renderWeek()}
+function manageBox(k){
+  const K=KIND[k],box=$(K.box),items=K.list(),ul=document.createElement('ul');ul.className='list';box.textContent='';
+  items.forEach(name=>{
+    const n=S.exp.filter(e=>e[K.field]===name).length,b=k==='cat'?(+S.bud[name]||0):0,li=document.createElement('li');
+    li.innerHTML='<div class="d"><b></b><small></small></div><button type="button" class="mini">Remove</button>';
+    li.querySelector('b').textContent=name;
+    li.querySelector('small').textContent=n?'used in '+n+(n>1?' entries':' entry')+(b?', budget '+inr(b):''):(b?'budget '+inr(b)+', no entries':'not used yet');
+    li.querySelector('button').onclick=()=>{
+      if(items.length<2){stamp('Keep at least one '+K.word+'.');return}
+      if(!n&&!b)removeItem(k,name,null);else{pending={k,name};manageBox(k)}};
+    ul.append(li);
+    if(pending&&pending.k===k&&pending.name===name){
+      const w=document.createElement('li');w.className='warn';
+      w.innerHTML='<p></p><select aria-label="Move entries to"></select><div><button type="button" class="btn">Move and remove</button><button type="button" class="mini">Keep it</button></div>';
+      w.querySelector('p').textContent='\u2018'+name+'\u2019 is used in '+n+(n===1?' entry':' entries')+(b?' and has a budget of '+inr(b):'')+'. Pick where they should go and I\u2019ll move everything over.';
+      const sel=w.querySelector('select');items.filter(x=>x!==name).forEach(x=>{const o=document.createElement('option');o.textContent=x;sel.append(o)});
+      w.querySelector('.btn').onclick=()=>removeItem(k,name,sel.value);
+      w.querySelector('.mini').onclick=()=>{pending=null;manageBox(k)};
+      ul.append(w)}
+  });
+  const row=document.createElement('div');row.className='addrow';
+  row.innerHTML='<input type="text" maxlength="24" placeholder="New '+K.word+'" aria-label="New '+K.word+'"><button type="button" class="btn">Add</button>';
+  const inp=row.querySelector('input'),go=()=>{const v=inp.value.trim();if(!v)return;
+    if(items.some(x=>x.toLowerCase()===v.toLowerCase())){stamp('Already on the shelf.');return}
+    items.push(v);save();afterManage();stamp('Added '+v+'.')};
+  row.querySelector('button').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go()}};
+  box.append(ul,row);
+}
+function removeItem(k,name,to){
+  const K=KIND[k],arr=K.list(),i=arr.indexOf(name);if(i<0)return;let moved=0;
+  if(to){
+    S.exp.forEach(e=>{if(e[K.field]===name){const old={...e};e[K.field]=to;moved++;setTimeout(()=>syncSheet(e,'update',old),moved*450)}});
+    if(k==='cat'&&S.bud[name])S.bud[to]=(+S.bud[to]||0)+(+S.bud[name]);
+  }
+  if(k==='cat')delete S.bud[name];
+  arr.splice(i,1);
+  if(k==='cat'&&selCat===name)selCat=S.cats[0];
+  if(k==='pay'&&selPay===name)selPay=S.pays[0];
+  pending=null;save();afterManage();
+  stamp(moved?'Moved '+moved+(moved>1?' entries':' entry')+' to '+to+'. Removed '+name+'.':'Removed '+name+'.');
+}
 /* ===== LOOK ===== */
 function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
   $$(".pick>div").forEach(d=>d.hidden=d.dataset.for!==m);render()}
@@ -533,7 +616,7 @@ function render(){
   $("#totalSub").textContent=list.length?list.length+(list.length>1?" entries":" entry")+", "+inr(tot/Math.max(1,(pd(b)-pd(a))/864e5+1))+" a day on average":"";
   $("#empty").hidden=S.exp.length>0;$("#charts").hidden=!list.length;
   const ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim(),mute=getComputedStyle(document.documentElement).getPropertyValue("--mute").trim();
-  Chart.defaults.font.family='Karla, sans-serif';Chart.defaults.color=mute;
+  Chart.defaults.font.family='Literata, Georgia, serif';Chart.defaults.color=mute;
   // time buckets
   let keys=[],monthly=false;
   if(mode==="year"||(mode==="range"&&(pd(b)-pd(a))/864e5>62))monthly=true;
@@ -556,7 +639,7 @@ function render(){
   list.slice(0,12).forEach(e=>{const li=document.createElement("li");
     li.innerHTML='<div class="d"><b></b><small></small></div><b class="p"></b><button class="x" aria-label="Delete this entry">×</button>';
     li.querySelector(".d b").textContent=e.desc||e.cat;li.querySelector("small").textContent=e.date+", "+e.cat+", "+e.pay;
-    li.querySelector(".p").textContent=inr(e.amt);li.querySelector(".x").onclick=()=>{S.exp=S.exp.filter(z=>z.id!==e.id);save();render()};ul.append(li)});
+    li.querySelector(".p").textContent=inr(e.amt);li.querySelector(".x").onclick=()=>{syncSheet(e,"delete",e);S.exp=S.exp.filter(z=>z.id!==e.id);save();render()};ul.append(li)});
   if(list.length>12){const li=document.createElement("li");li.className="hint";li.textContent="…and "+(list.length-12)+" more. Narrow the dates to see them.";ul.append(li)}
 }
 function insights(list,tot){

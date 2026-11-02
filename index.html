@@ -242,6 +242,8 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
     <label for="url">Apps Script web app URL</label>
     <input id="url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
     <button class="btn" id="saveUrl" style="margin-top:10px">Save link</button>
+    <button class="btn ghost" id="syncNow" style="margin-top:10px">Sync with Sheet now</button>
+    <p class="hint" id="syncMsg"></p>
     <p class="hint">Heads up: browsers inside a shared preview often block calls to other sites. Syncing works once this file lives on your own hosting or you open it locally.</p>
     <details open><summary>Google Sheet steps</summary>
       <ol>
@@ -250,28 +252,48 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
         <li>Deploy → New deployment → Web app. Execute as: Me. Who has access: Anyone. Deploy and copy the URL.</li>
         <li>Paste the URL above. Add one expense. A row appears with the header: Date | Amount | Category | Description | Payment Method | Month | Year | ID.</li>
       </ol>
-<pre id="gs">var HEAD = ['Date','Amount','Category','Description','Payment Method','Month','Year','ID'];
-function doPost(e) {
+<pre id="gs">var TZ = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+var HEAD = ['Date','Amount','Category','Description','Payment Method','Month','Year','ID'];
+function sheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var s = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
+  if (s.getLastRow() === 0) { s.appendRow(HEAD); s.setFrozenRows(1); }
+  s.getRange(1, 1, 1, 8).setValues([HEAD]).setFontWeight('bold');
+  return s;
+}
+function doGet(e) {   // the app reads the sheet from here
+  var lock = LockService.getScriptLock(); lock.waitLock(10000);
+  var out = [];
+  try {
+    var s = sheet_();
+    if (s.getLastRow() > 1) {
+      var rg = s.getRange(2, 1, s.getLastRow() - 1, 8), v = rg.getValues(), dirty = false;
+      v.forEach(function (r) {
+        if (!r[0] && !r[1]) return;
+        var d = r[0] instanceof Date ? r[0] : new Date(r[0]);
+        if (!r[7]) { r[7] = Utilities.getUuid().slice(0, 8); dirty = true; }
+        if (!r[5]) { r[5] = Utilities.formatDate(d, TZ, 'MMMM'); r[6] = Number(Utilities.formatDate(d, TZ, 'yyyy')); dirty = true; }
+        out.push({id: String(r[7]), date: day(r[0]), amount: Number(r[1]), category: r[2], description: String(r[3]), payment: r[4]});
+      });
+      if (dirty) rg.setValues(v);
+    }
+  } finally { lock.releaseLock(); }
+  return ContentService.createTextOutput(JSON.stringify({rows: out})).setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) {   // the app writes here (add, update, delete)
   var lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
-    var p = e.parameter, ss = SpreadsheetApp.getActiveSpreadsheet();
-    var s = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
-    if (s.getLastRow() == 0) { s.appendRow(HEAD); s.setFrozenRows(1); }
-    s.getRange(1,1,1,8).setValues([HEAD]).setFontWeight('bold');
-    var act = p.action || 'add';
-    if (act == 'add') { s.appendRow(rowOf(p)); }
-    else {
-      var r = findRow(s, p);
-      if (act == 'delete' && r) s.deleteRow(r);
-      if (act == 'update') { if (r) s.getRange(r,1,1,8).setValues([rowOf(p)]); else s.appendRow(rowOf(p)); }
-    }
+    var p = e.parameter, s = sheet_(), act = p.action || 'add', r = findRow(s, p);
+    if (act == 'delete') { if (r) s.deleteRow(r); }
+    else if (r) s.getRange(r, 1, 1, 8).setValues([rowOf(p)]);
+    else s.appendRow(rowOf(p));
   } finally { lock.releaseLock(); }
   return ContentService.createTextOutput('ok');
 }
 function rowOf(p) {
-  var d = new Date(p.date);
+  var d = new Date(p.date + 'T00:00:00');
   return [p.date, Number(p.amount), p.category, p.description, p.payment,
-    d.toLocaleString('en-US',{month:'long'}), d.getFullYear(), p.id];
+    Utilities.formatDate(d, TZ, 'MMMM'), Number(Utilities.formatDate(d, TZ, 'yyyy')), p.id];
 }
 function findRow(s, p) {
   var v = s.getDataRange().getValues(), i;
@@ -282,7 +304,7 @@ function findRow(s, p) {
   }
   return 0;
 }
-function day(d) { return d instanceof Date ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(d); }</pre>
+function day(d) { return d instanceof Date ? Utilities.formatDate(d, TZ, 'yyyy-MM-dd') : String(d); }</pre>
 <p class="hint">Already deployed an older script? Paste this over it, then Deploy, Manage deployments, pencil icon, Version: New version, Deploy. Your link stays the same.</p></details>
     <details><summary>Plain HTML form (no JavaScript needed)</summary>
 <pre>&lt;form method="POST" action="YOUR_WEB_APP_URL"&gt;
@@ -383,7 +405,7 @@ function boot(){
   if(booted)return;booted=true;
   const t=new Date();$("#date").value=ymd(t);$("#pDay").value=ymd(t);$("#pMon").value=ymd(t).slice(0,7);$("#bMon").value=ymd(t).slice(0,7);
   $("#pYr").value=t.getFullYear();$("#pFrom").value=ymd(new Date(t.getFullYear(),t.getMonth(),1));$("#pTo").value=ymd(t);
-  $("#url").value=S.url||"";if(!S.cats.some(c=>/book/i.test(c)))S.cats.splice(Math.min(6,S.cats.length),0,"Books");selCat=S.cats[0];selPay=S.pays[0];chips();renderWeek();setMode(mode);
+  $("#url").value=S.url||"";if(!S.cats.some(c=>/book/i.test(c)))S.cats.splice(Math.min(6,S.cats.length),0,"Books");selCat=S.cats[0];selPay=S.pays[0];chips();renderWeek();setMode(mode);pullSheet(false);
 }
 function show(v){["add","look","budget","setup"].forEach(x=>$("#v-"+x).hidden=x!==v);
   $$("nav button[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
@@ -424,13 +446,15 @@ $("#expForm").addEventListener("submit",e=>{
   $("#amount").focus();
 });
 function stamp(t){const s=$("#stamp");s.textContent=t;s.hidden=false;s.style.animation="none";s.offsetWidth;s.style.animation="";clearTimeout(stamp.t);stamp.t=setTimeout(()=>s.hidden=true,1900)}
+let lastWrite=0;const deleted=new Set();
 function syncSheet(x,act,old){
-  if(!S.url)return;
+  if(act==="delete")deleted.add(x.id);
+  if(!S.url)return;lastWrite=Date.now();
   const p=new URLSearchParams({action:act||"add",id:x.id,date:x.date,amount:x.amt,category:x.cat,description:x.desc,payment:x.pay});
   if(old){p.set("o_date",old.date);p.set("o_amount",old.amt);p.set("o_category",old.cat);p.set("o_description",old.desc||"");p.set("o_payment",old.pay)}
   try{fetch(S.url,{method:"POST",mode:"no-cors",body:p}).catch(()=>stamp("Saved here; Sheet didn’t answer."))}catch(e){}
 }
-$("#saveUrl").onclick=()=>{S.url=$("#url").value.trim();save();stamp(S.url?"Link saved.":"Link cleared.")};
+$("#saveUrl").onclick=()=>{S.url=$("#url").value.trim();save();stamp(S.url?"Link saved.":"Link cleared.");if(S.url)pullSheet(true)};
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark";if(Object.keys(charts).length)render()};
 
 /* ===== LAST 7 DAYS: edit / copy / delete ===== */
@@ -592,6 +616,38 @@ function removeItem(k,name,to){
   if(k==='pay'&&selPay===name)selPay=S.pays[0];
   pending=null;save();afterManage();
   stamp(moved?'Moved '+moved+(moved>1?' entries':' entry')+' to '+to+'. Removed '+name+'.':'Removed '+name+'.');
+}
+/* ===== TWO-WAY SHEET SYNC (the Sheet is the shared record) ===== */
+let pulling=false;
+$('#syncNow').onclick=()=>pullSheet(true);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('#app').hidden)pullSheet(false)});
+async function pullSheet(manual){
+  if(!S.url||pulling||(!manual&&Date.now()-lastWrite<10000))return;
+  pulling=true;const msg=$('#syncMsg');
+  try{
+    const res=await fetch(S.url+(S.url.includes('?')?'&':'?')+'t='+Date.now()),j=await res.json();
+    if(!j||!Array.isArray(j.rows))throw new Error('bad reply');
+    const rows=j.rows.map(x=>({id:String(x.id),date:String(x.date).slice(0,10),amt:+x.amount,cat:String(x.category||'Misc'),desc:String(x.description||''),pay:String(x.payment||'Other')}))
+      .filter(x=>x.id&&/^\d{4}-\d\d-\d\d$/.test(x.date)&&x.amt>0&&!deleted.has(x.id));
+    const key=e=>[e.date,e.amt,e.cat,e.desc,e.pay].join('|'),ids=new Set(rows.map(x=>x.id)),byId=new Map(S.exp.map(e=>[e.id,e]));
+    const loose=S.exp.filter(e=>!e.sy&&!ids.has(e.id)),next=[],seen=new Set();let a=0,u=0,d=0,p=0;
+    rows.forEach(r=>{
+      if(!S.cats.includes(r.cat))S.cats.push(r.cat);if(!S.pays.includes(r.pay))S.pays.push(r.pay);
+      let e=byId.get(r.id);
+      if(!e){const k=loose.findIndex(l=>key(l)===key(r));if(k>-1){e=loose.splice(k,1)[0];e.id=r.id}}
+      if(e){if(key(e)!==key(r)){Object.assign(e,r);u++}e.sy=1}else{e={...r,sy:1};a++}
+      next.push(e);seen.add(e.id)});
+    S.exp.forEach(e=>{if(seen.has(e.id))return;
+      if(e.sy&&rows.length){d++}else{next.push(e);if(!e.sy)setTimeout(()=>syncSheet(e),(++p)*450)}});
+    S.exp=next;save();
+    if(a+u+d+p>0||manual){chips();renderWeek();if(!$('#v-look').hidden)render();if(!$('#v-budget').hidden)renderBudget(false)}
+    if(msg)msg.textContent='Last sync: '+a+' new from the Sheet, '+u+' updated, '+d+' removed, '+p+' sent to the Sheet.';
+    if(manual)stamp('Synced with your Sheet.');
+  }catch(err){
+    if(msg)msg.textContent='Couldn\u2019t read the Sheet. Check the link, and that the new script is deployed as a new version.';
+    if(manual)stamp('Sheet didn\u2019t answer.');
+  }
+  pulling=false;
 }
 /* ===== LOOK ===== */
 function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));

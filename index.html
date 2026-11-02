@@ -244,6 +244,7 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:700;min-height:40px}
     <button class="btn" id="saveUrl" style="margin-top:10px">Save link</button>
     <button class="btn ghost" id="syncNow" style="margin-top:10px">Sync with Sheet now</button>
     <p class="hint" id="syncMsg"></p>
+    <div class="warn" id="syncAsk" hidden></div>
     <p class="hint">Heads up: browsers inside a shared preview often block calls to other sites. Syncing works once this file lives on your own hosting or you open it locally.</p>
     <details open><summary>Google Sheet steps</summary>
       <ol>
@@ -630,7 +631,7 @@ async function pullSheet(manual){
     const rows=j.rows.map(x=>({id:String(x.id),date:String(x.date).slice(0,10),amt:+x.amount,cat:String(x.category||'Misc'),desc:String(x.description||''),pay:String(x.payment||'Other')}))
       .filter(x=>x.id&&/^\d{4}-\d\d-\d\d$/.test(x.date)&&x.amt>0&&!deleted.has(x.id));
     const key=e=>[e.date,e.amt,e.cat,e.desc,e.pay].join('|'),ids=new Set(rows.map(x=>x.id)),byId=new Map(S.exp.map(e=>[e.id,e]));
-    const loose=S.exp.filter(e=>!e.sy&&!ids.has(e.id)),next=[],seen=new Set();let a=0,u=0,d=0,p=0;
+    const loose=S.exp.filter(e=>!e.sy&&!ids.has(e.id)),next=[],seen=new Set();let a=0,u=0,d=0,p=0;const orphans=[];
     rows.forEach(r=>{
       if(!S.cats.includes(r.cat))S.cats.push(r.cat);if(!S.pays.includes(r.pay))S.pays.push(r.pay);
       let e=byId.get(r.id);
@@ -638,16 +639,25 @@ async function pullSheet(manual){
       if(e){if(key(e)!==key(r)){Object.assign(e,r);u++}e.sy=1}else{e={...r,sy:1};a++}
       next.push(e);seen.add(e.id)});
     S.exp.forEach(e=>{if(seen.has(e.id))return;
-      if(e.sy&&rows.length){d++}else{next.push(e);if(!e.sy)setTimeout(()=>syncSheet(e),(++p)*450)}});
-    S.exp=next;save();
+      if(e.sy&&rows.length){d++;return}
+      next.push(e);
+      if(!e.sy){const t=parseInt(e.id,36);if(t>1e12&&Date.now()-t<18e4)setTimeout(()=>syncSheet(e),(++p)*450);else orphans.push(e)}});
+    S.exp=next;save();showAsk(orphans);if(orphans.length&&!manual)stamp('Some entries are only in the app. See Back office.');
     if(a+u+d+p>0||manual){chips();renderWeek();if(!$('#v-look').hidden)render();if(!$('#v-budget').hidden)renderBudget(false)}
     if(msg)msg.textContent='Last sync: '+a+' new from the Sheet, '+u+' updated, '+d+' removed, '+p+' sent to the Sheet.';
     if(manual)stamp('Synced with your Sheet.');
   }catch(err){
-    if(msg)msg.textContent='Couldn\u2019t read the Sheet. Check the link, and that the new script is deployed as a new version.';
+    if(msg)msg.textContent=err instanceof SyntaxError?'The link answered, but not with data. The new script is probably not deployed as a New version yet.':'Couldn\u2019t reach the Sheet. If you are on the claude.ai preview, use your GitHub copy instead; otherwise check the link.';
     if(manual)stamp('Sheet didn\u2019t answer.');
   }
   pulling=false;
+}
+function showAsk(list){
+  const box=$('#syncAsk');if(!list.length){box.hidden=true;return}
+  box.hidden=false;box.innerHTML='<p></p><button type="button" class="btn">Send to the Sheet</button><button type="button" class="mini">Remove from the app</button>';
+  box.querySelector('p').textContent=list.length+(list.length>1?' entries exist':' entry exists')+' only in the app, not in your Sheet ('+list.slice(0,3).map(e=>(e.desc||e.cat)+' '+inr(e.amt)).join(', ')+(list.length>3?', \u2026':'')+'). Maybe you deleted them in the Sheet, maybe they never got sent. What now?';
+  box.querySelector('.btn').onclick=()=>{list.forEach((e,i)=>setTimeout(()=>syncSheet(e),i*450));box.hidden=true;stamp('Sending to the Sheet.')};
+  box.querySelector('.mini').onclick=()=>{const ids=new Set(list.map(e=>e.id));S.exp=S.exp.filter(e=>!ids.has(e.id));save();box.hidden=true;chips();renderWeek();if(!$('#v-look').hidden)render();stamp('Removed from the app.')};
 }
 /* ===== LOOK ===== */
 function setMode(m){mode=m;$$("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
